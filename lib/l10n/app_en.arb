@@ -80,5 +80,17 @@
   "ssidNetwork": "SSID Network",
   "password": "Password",
   "lastMaintenance": "Last maintenance: {date}",
-  "microcontroller": "Microcontroller"
+  "microcontroller": "Microcontroller",
+  "welcomeBack": "Welcome back",
+  "signInSubtitle": "Sign in to your account",
+  "signIn": "Sign In",
+  "noAccount": "Don't have an account?",
+  "registerLink": "Register",
+  "createAccount": "Create account",
+  "inviteTokenSubtitle": "You need an invite token to register",
+  "inviteToken": "Invite Token",
+  "register": "Register",
+  "accountCreated": "Account created!",
+  "accountCreatedSubtitle": "You can now sign in with your credentials.",
+  "goToSignIn": "Go to Sign In"
 }

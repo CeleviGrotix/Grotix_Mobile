@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../common/di/locale_provider.dart';
 import '../../../../../common/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/user_profile.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/profile_info_field.dart';
@@ -97,7 +99,8 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
     if (confirmed == true) {
-      // TODO: llamar al caso de uso de logout y navegar a login
+      await context.read<AuthProvider>().logout();
+      if (mounted) context.go('/login');
     }
   }
 

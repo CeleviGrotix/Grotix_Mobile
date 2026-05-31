@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'common/di/locale_provider.dart';
 import 'common/routes/app_router.dart';
 import 'common/theme/app_theme.dart';
+import 'features/identity/auth/auth_injection.dart';
+import 'features/identity/auth/presentation/providers/auth_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
@@ -20,19 +22,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<String>(create: (_) => "Grotix Initializing..."),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => buildAuthProvider()), // NUEVO
       ],
-      child: Consumer<LocaleProvider>( // para que el locale reactive la app
-        builder: (context, localeProvider, _) {
+      child: Consumer2<LocaleProvider, AuthProvider>(
+        builder: (context, localeProvider, auth, _) {
           return MaterialApp.router(
             title: 'Grotix',
             theme: getAppTheme(),

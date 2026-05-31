@@ -220,4 +220,42 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get microcontroller => 'Microcontrolador';
+
+  @override
+  String get welcomeBack => 'Bienvenido de nuevo';
+
+  @override
+  String get signInSubtitle => 'Inicia sesión en tu cuenta';
+
+  @override
+  String get signIn => 'Entrar';
+
+  @override
+  String get noAccount => '¿No tienes una cuenta?';
+
+  @override
+  String get registerLink => 'Regístrate';
+
+  @override
+  String get createAccount => 'Crear cuenta';
+
+  @override
+  String get inviteTokenSubtitle =>
+      'Necesitas un token de invitación para registrarte';
+
+  @override
+  String get inviteToken => 'Token de invitación';
+
+  @override
+  String get register => 'Registrarse';
+
+  @override
+  String get accountCreated => '¡Cuenta creada!';
+
+  @override
+  String get accountCreatedSubtitle =>
+      'Ahora puedes iniciar sesión con tus credenciales.';
+
+  @override
+  String get goToSignIn => 'Ir al inicio de sesión';
 }

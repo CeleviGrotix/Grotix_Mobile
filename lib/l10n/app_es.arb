@@ -80,5 +80,17 @@
   "ssidNetwork": "Red SSID",
   "password": "Contraseña",
   "lastMaintenance": "Último mantenimiento: {date}",
-  "microcontroller": "Microcontrolador"
+  "microcontroller": "Microcontrolador",
+  "welcomeBack": "Bienvenido de nuevo",
+  "signInSubtitle": "Inicia sesión en tu cuenta",
+  "signIn": "Entrar",
+  "noAccount": "¿No tienes una cuenta?",
+  "registerLink": "Regístrate",
+  "createAccount": "Crear cuenta",
+  "inviteTokenSubtitle": "Necesitas un token de invitación para registrarte",
+  "inviteToken": "Token de invitación",
+  "register": "Registrarse",
+  "accountCreated": "¡Cuenta creada!",
+  "accountCreatedSubtitle": "Ahora puedes iniciar sesión con tus credenciales.",
+  "goToSignIn": "Ir al inicio de sesión"
 }

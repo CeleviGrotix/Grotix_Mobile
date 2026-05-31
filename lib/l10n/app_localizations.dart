@@ -493,6 +493,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Microcontroller'**
   String get microcontroller;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBack;
+
+  /// No description provided for @signInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your account'**
+  String get signInSubtitle;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get noAccount;
+
+  /// No description provided for @registerLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get registerLink;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @inviteTokenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You need an invite token to register'**
+  String get inviteTokenSubtitle;
+
+  /// No description provided for @inviteToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Token'**
+  String get inviteToken;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @accountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created!'**
+  String get accountCreated;
+
+  /// No description provided for @accountCreatedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can now sign in with your credentials.'**
+  String get accountCreatedSubtitle;
+
+  /// No description provided for @goToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Sign In'**
+  String get goToSignIn;
 }
 
 class _AppLocalizationsDelegate
