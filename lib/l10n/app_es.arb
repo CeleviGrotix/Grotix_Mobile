@@ -43,5 +43,16 @@
   "noZonesFound": "No se encontraron zonas",
   "aiImageProcessing": "Procesamiento IA de Imágenes",
   "aiTrustLevel": "Nivel de Confianza IA",
-  "zoneStatus": "ESTADO DE ZONAS"
+  "zoneStatus": "ESTADO DE ZONAS",
+  "generateReport": "Generar Reporte",
+  "irrigation": "Riego",
+  "start": "Inicio",
+  "finish": "Fin",
+  "selectTimeRange": "Selecciona un rango de tiempo:",
+  "generate": "GENERAR",
+  "week": "1 semana",
+  "month": "1 mes",
+  "threeMonths": "3 meses",
+  "sixMonths": "6 meses",
+  "year": "1 año"
 }

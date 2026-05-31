@@ -100,4 +100,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zoneStatus => 'ZONE STATUS';
+
+  @override
+  String get generateReport => 'Generate Report';
+
+  @override
+  String get irrigation => 'Irrigation';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get selectTimeRange => 'Select a specific time range:';
+
+  @override
+  String get generate => 'GENERATE';
+
+  @override
+  String get week => '1 week';
+
+  @override
+  String get month => '1 month';
+
+  @override
+  String get threeMonths => '3 months';
+
+  @override
+  String get sixMonths => '6 meses';
+
+  @override
+  String get year => '1 year';
 }

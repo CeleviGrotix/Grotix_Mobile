@@ -271,6 +271,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ZONE STATUS'**
   String get zoneStatus;
+
+  /// No description provided for @generateReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Report'**
+  String get generateReport;
+
+  /// No description provided for @irrigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Irrigation'**
+  String get irrigation;
+
+  /// No description provided for @start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get start;
+
+  /// No description provided for @finish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get finish;
+
+  /// No description provided for @selectTimeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a specific time range:'**
+  String get selectTimeRange;
+
+  /// No description provided for @generate.
+  ///
+  /// In en, this message translates to:
+  /// **'GENERATE'**
+  String get generate;
+
+  /// No description provided for @week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get week;
+
+  /// No description provided for @month.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get month;
+
+  /// No description provided for @threeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'3 months'**
+  String get threeMonths;
+
+  /// No description provided for @sixMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'6 meses'**
+  String get sixMonths;
+
+  /// No description provided for @year.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year'**
+  String get year;
 }
 
 class _AppLocalizationsDelegate

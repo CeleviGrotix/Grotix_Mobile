@@ -43,5 +43,16 @@
   "noZonesFound": "No zones found",
   "aiImageProcessing": "AI Image Processing",
   "aiTrustLevel": "AI Trust Level",
-  "zoneStatus": "ZONE STATUS"
+  "zoneStatus": "ZONE STATUS",
+  "generateReport": "Generate Report",
+  "irrigation": "Irrigation",
+  "start": "Start",
+  "finish": "Finish",
+  "selectTimeRange": "Select a specific time range:",
+  "generate": "GENERATE",
+  "week": "1 week",
+  "month": "1 month",
+  "threeMonths": "3 months",
+  "sixMonths": "6 meses",
+  "year": "1 year"
 }
