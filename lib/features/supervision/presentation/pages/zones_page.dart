@@ -107,7 +107,7 @@ class _ZonesPageState extends State<ZonesPage> {
                 'Cultivation Areas',
                 style: TextStyle(
                   color: AppColors.white,
-                  fontSize: 26,
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -184,12 +184,21 @@ class _SearchAndActions extends StatelessWidget {
               style: const TextStyle(color: AppColors.white, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search zones...',
-                hintStyle:
-                TextStyle(color: AppColors.white.withOpacity(0.35), fontSize: 14),
-                prefixIcon: FaIcon(AppIcons.search,
-                    size: 16, color: AppColors.white.withOpacity(0.4)),
+                hintStyle: TextStyle(color: AppColors.white.withOpacity(0.35), fontSize: 14),
+
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: FaIcon(AppIcons.search,
+                      size: 16, color: AppColors.white.withOpacity(0.4)),
+                ),
+
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 0,
+                ),
+
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                contentPadding: EdgeInsets.zero,
               ),
             ),
           ),

@@ -88,7 +88,7 @@ class _ZoneInfo extends StatelessWidget {
             zone.displayName,
             style: const TextStyle(
               color: AppColors.white,
-              fontSize: 15,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -97,7 +97,7 @@ class _ZoneInfo extends StatelessWidget {
             'Last update $lastUpdate',
             style: TextStyle(
               color: AppColors.white.withOpacity(0.5),
-              fontSize: 12,
+              fontSize: 15,
             ),
           ),
           const SizedBox(height: 6),
@@ -137,7 +137,7 @@ class _SensorStatusBadge extends StatelessWidget {
       children: [
         FaIcon(icon, size: 12, color: color),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(color: color, fontSize: 12)),
+        Text(label, style: TextStyle(color: color, fontSize: 15)),
       ],
     );
   }
