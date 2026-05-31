@@ -50,7 +50,8 @@ class _MainShellState extends State<MainShell> {
         backgroundColor: AppColors.black,
         elevation: 0,
         title: Image.asset('assets/images/logo.png', height: 35),
-        centerTitle: false,
+        centerTitle: true,
+        toolbarHeight: 70,
         actions: [
           IconButton(
             icon: const FaIcon(AppIcons.notifications, color: AppColors.white, size: 20),
