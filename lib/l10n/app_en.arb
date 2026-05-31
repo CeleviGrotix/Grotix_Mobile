@@ -1,0 +1,47 @@
+{
+  "@@locale": "en",
+  "hello": "Hello, {name}!",
+  "@hello": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "personalInfo": "PERSONAL INFO",
+  "settings": "SETTINGS",
+  "fullName": "Full Name",
+  "email": "Email",
+  "phone": "Phone",
+  "role": "Role",
+  "profilePicture": "Profile Picture",
+  "edit": "EDIT",
+  "logout": "LOG OUT",
+  "language": "Language",
+  "languageEnglish": "English",
+  "languageSpanish": "Spanish",
+  "logoutConfirmTitle": "Log out",
+  "logoutConfirmMessage": "Are you sure you want to log out?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "changesSaved": "Changes saved",
+  "allSensorsActive": "All sensors are active",
+  "someSensorsFailing": "Some sensors are failing",
+  "noActiveSensors": "No active sensors",
+  "lastUpdate": "Last update {time}",
+  "@lastUpdate": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "stage": "Stage: {stage}",
+  "@stage": {
+    "placeholders": {
+      "stage": { "type": "String" }
+    }
+  },
+  "cultivationAreas": "Cultivation Areas",
+  "searchZones": "Search zones...",
+  "noZonesFound": "No zones found",
+  "aiImageProcessing": "AI Image Processing",
+  "aiTrustLevel": "AI Trust Level",
+  "zoneStatus": "ZONE STATUS"
+}

@@ -1,0 +1,47 @@
+{
+  "@@locale": "es",
+  "hello": "¡Hola, {name}!",
+  "@hello": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "personalInfo": "INFO PERSONAL",
+  "settings": "CONFIGURACIÓN",
+  "fullName": "Nombre completo",
+  "email": "Correo electrónico",
+  "phone": "Teléfono",
+  "role": "Rol",
+  "profilePicture": "Foto de perfil",
+  "edit": "EDITAR",
+  "logout": "CERRAR SESIÓN",
+  "language": "Idioma",
+  "languageEnglish": "Inglés",
+  "languageSpanish": "Español",
+  "logoutConfirmTitle": "Cerrar sesión",
+  "logoutConfirmMessage": "¿Estás seguro de que deseas cerrar sesión?",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "changesSaved": "Cambios guardados",
+  "allSensorsActive": "Todos los sensores activos",
+  "someSensorsFailing": "Algunos sensores con fallas",
+  "noActiveSensors": "Sin sensores activos",
+  "lastUpdate": "Última actualización {time}",
+  "@lastUpdate": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "stage": "Etapa: {stage}",
+  "@stage": {
+    "placeholders": {
+      "stage": { "type": "String" }
+    }
+  },
+  "cultivationAreas": "Áreas de Cultivo",
+  "searchZones": "Buscar zonas...",
+  "noZonesFound": "No se encontraron zonas",
+  "aiImageProcessing": "Procesamiento IA de Imágenes",
+  "aiTrustLevel": "Nivel de Confianza IA",
+  "zoneStatus": "ESTADO DE ZONAS"
+}

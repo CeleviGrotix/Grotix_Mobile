@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/common/theme/app_colors.dart';
+import 'package:grotix/l10n/app_localizations.dart'; // Importante
 import 'package:intl/intl.dart';
 
 import '../../domain/entities/ai_processing_status.dart';
@@ -65,7 +66,8 @@ class _ZoneInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lastUpdate = DateFormat('HH:mm').format(zone.lastUpdate);
+    final l10n = AppLocalizations.of(context)!;
+    final lastUpdateTime = DateFormat('HH:mm').format(zone.lastUpdate);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -83,7 +85,8 @@ class _ZoneInfo extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Last update $lastUpdate',
+            // Usando placeholder {time} del JSON
+            l10n.lastUpdate(lastUpdateTime),
             style: TextStyle(
               color: AppColors.white.withOpacity(0.5),
               fontSize: 15,
@@ -91,7 +94,8 @@ class _ZoneInfo extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Stage: ${zone.currentStage}',
+            // Usando placeholder {stage} del JSON
+            l10n.stage(zone.currentStage),
             style: const TextStyle(
               color: AppColors.greenEmerald,
               fontSize: 15,
@@ -117,9 +121,12 @@ class _AnalyzeButton extends StatelessWidget {
       return const SizedBox(
         width: 36,
         height: 36,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: AppColors.greenEmerald,
+        child: Padding(
+          padding: EdgeInsets.all(4.0),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.greenEmerald,
+          ),
         ),
       );
     }

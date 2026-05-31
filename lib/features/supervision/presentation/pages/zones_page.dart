@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grotix/l10n/app_localizations.dart'; // Importante
 import '../../../../common/theme/app_colors.dart';
 import '../../../../common/utils/app_icons.dart';
 import '../../domain/entities/crop.dart';
@@ -94,6 +95,9 @@ class _ZonesPageState extends State<ZonesPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos las traducciones
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.black,
       body: SafeArea(
@@ -103,9 +107,9 @@ class _ZonesPageState extends State<ZonesPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text(
-                'Cultivation Areas',
-                style: TextStyle(
+              Text(
+                l10n.cultivationAreas, // Traducción del título
+                style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -169,6 +173,8 @@ class _SearchAndActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Row(
       children: [
         Expanded(
@@ -183,7 +189,7 @@ class _SearchAndActions extends StatelessWidget {
               onChanged: onChanged,
               style: const TextStyle(color: AppColors.white, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Search zones...',
+                hintText: l10n.searchZones, // Traducción del placeholder
                 hintStyle: TextStyle(color: AppColors.white.withOpacity(0.35), fontSize: 14),
 
                 prefixIcon: Padding(
@@ -263,6 +269,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -271,7 +279,7 @@ class _EmptyState extends StatelessWidget {
               size: 48, color: AppColors.white.withOpacity(0.2)),
           const SizedBox(height: 16),
           Text(
-            'No zones found',
+            l10n.noZonesFound,
             style: TextStyle(
               color: AppColors.white.withOpacity(0.4),
               fontSize: 16,

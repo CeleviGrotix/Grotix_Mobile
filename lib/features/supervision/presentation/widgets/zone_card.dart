@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/common/theme/app_colors.dart';
+import 'package:grotix/l10n/app_localizations.dart'; // Importante
 import 'package:intl/intl.dart';
 
 import '../../domain/entities/zone.dart';
@@ -74,7 +75,10 @@ class _ZoneInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lastUpdate = zone.lastUpdate != null
+    final l10n = AppLocalizations.of(context)!;
+
+    // Formateamos la hora
+    final timeString = zone.lastUpdate != null
         ? DateFormat('HH:mm').format(zone.lastUpdate!)
         : '--:--';
 
@@ -94,7 +98,8 @@ class _ZoneInfo extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Last update $lastUpdate',
+            // Usamos la clave con placeholder {time}
+            l10n.lastUpdate(timeString),
             style: TextStyle(
               color: AppColors.white.withOpacity(0.5),
               fontSize: 15,
@@ -115,20 +120,23 @@ class _SensorStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Mapeamos el estado a ícono, texto traducido y color
     final (icon, label, color) = switch (status) {
       ZoneSensorStatus.allActive => (
       FontAwesomeIcons.circleCheck,
-      'All sensors are active',
+      l10n.allSensorsActive,
       AppColors.greenEmerald,
       ),
       ZoneSensorStatus.someFailing => (
       FontAwesomeIcons.triangleExclamation,
-      'Some sensors are failing',
-      Colors.redAccent,
+      l10n.someSensorsFailing,
+      AppColors.redCoral,
       ),
       ZoneSensorStatus.allInactive => (
       FontAwesomeIcons.circleXmark,
-      'No active sensors',
+      l10n.noActiveSensors,
       Colors.orange,
       ),
     };
@@ -137,7 +145,14 @@ class _SensorStatusBadge extends StatelessWidget {
       children: [
         FaIcon(icon, size: 12, color: color),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(color: color, fontSize: 15)),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(color: color, fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

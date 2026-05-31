@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grotix/l10n/app_localizations.dart'; // Importante para i18n
 
 import '../../../../common/theme/app_colors.dart';
 import '../../../../common/utils/app_icons.dart';
@@ -18,7 +19,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   String _searchQuery = '';
 
   // TODO: reemplazar con provider/repositorio real
-  double _aiTrustLevel = 0.80;
+  final double _aiTrustLevel = 0.80;
 
   List<AiZoneStatus> _zones = [
     AiZoneStatus(
@@ -53,7 +54,6 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   }
 
   void _onAnalyze(int zoneId) async {
-    // Simula el estado de procesamiento
     setState(() {
       _zones = _zones.map((z) {
         if (z.zoneId == zoneId) {
@@ -70,8 +70,10 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
       }).toList();
     });
 
-    // TODO: llamar al caso de uso real de análisis IA
+    // Simulación de análisis IA
     await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
 
     setState(() {
       _zones = _zones.map((z) {
@@ -98,6 +100,8 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.black,
       body: SafeArea(
@@ -108,10 +112,10 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
             children: [
               const SizedBox(height: 20),
 
-              // Título
-              const Text(
-                'AI Image Processing',
-                style: TextStyle(
+              // Título Internacionalizado
+              Text(
+                l10n.aiImageProcessing,
+                style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -120,13 +124,16 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
               const SizedBox(height: 16),
 
               // AI Trust Level
-              _AiTrustLevelRow(trustLevel: _aiTrustLevel),
+              _AiTrustLevelRow(
+                label: l10n.aiTrustLevel,
+                trustLevel: _aiTrustLevel,
+              ),
               const SizedBox(height: 24),
 
-              // Sección ZONE STATUS
-              const Text(
-                'ZONE STATUS',
-                style: TextStyle(
+              // Sección ZONE STATUS Internacionalizada
+              Text(
+                l10n.zoneStatus,
+                style: const TextStyle(
                   color: AppColors.redCoral,
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -137,6 +144,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
 
               // Buscador
               _SearchBar(
+                hintText: l10n.searchZones,
                 controller: _searchController,
                 onChanged: (v) => setState(() => _searchQuery = v),
               ),
@@ -170,9 +178,10 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
 // ─── AI Trust Level ──────────────────────────────────────────────────────────
 
 class _AiTrustLevelRow extends StatelessWidget {
-  final double trustLevel; // 0.0 a 1.0
+  final String label;
+  final double trustLevel;
 
-  const _AiTrustLevelRow({required this.trustLevel});
+  const _AiTrustLevelRow({required this.label, required this.trustLevel});
 
   @override
   Widget build(BuildContext context) {
@@ -181,9 +190,9 @@ class _AiTrustLevelRow extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'AI Trust Level',
-              style: TextStyle(
+            Text(
+              label,
+              style: const TextStyle(
                 color: AppColors.greenEmerald,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -208,7 +217,6 @@ class _AiTrustLevelRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        // Línea divisoria verde
         Container(height: 1, color: AppColors.greenEmerald.withOpacity(0.4)),
       ],
     );
@@ -218,10 +226,15 @@ class _AiTrustLevelRow extends StatelessWidget {
 // ─── Search bar ──────────────────────────────────────────────────────────────
 
 class _SearchBar extends StatelessWidget {
+  final String hintText;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
-  const _SearchBar({required this.controller, required this.onChanged});
+  const _SearchBar({
+    required this.hintText,
+    required this.controller,
+    required this.onChanged
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +249,7 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: const TextStyle(color: AppColors.white, fontSize: 14),
         decoration: InputDecoration(
-          hintText: 'Search zones...',
+          hintText: hintText,
           hintStyle: TextStyle(color: AppColors.white.withOpacity(0.35), fontSize: 14),
 
           prefixIcon: Padding(
@@ -265,6 +278,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -273,7 +288,7 @@ class _EmptyState extends StatelessWidget {
               size: 48, color: AppColors.white.withOpacity(0.2)),
           const SizedBox(height: 16),
           Text(
-            'No zones found',
+            l10n.noZonesFound,
             style: TextStyle(
                 color: AppColors.white.withOpacity(0.4), fontSize: 16),
           ),
