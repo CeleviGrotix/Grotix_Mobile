@@ -129,8 +129,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get threeMonths => '3 months';
 
   @override
-  String get sixMonths => '6 meses';
+  String get sixMonths => '6 months';
 
   @override
   String get year => '1 year';
+
+  @override
+  String get mainTab => 'MAIN';
+
+  @override
+  String get settingsTab => 'SETTINGS';
+
+  @override
+  String get peopleTab => 'PEOPLE';
+
+  @override
+  String germinationStage(Object stage) {
+    return 'Germination Stage: $stage';
+  }
+
+  @override
+  String latitude(Object lat) {
+    return 'Latitude: $lat';
+  }
+
+  @override
+  String longitude(Object lng) {
+    return 'Longitude: $lng';
+  }
+
+  @override
+  String get moisture => 'Moisture';
+
+  @override
+  String get lightRadiation => 'Light/Radiation';
+
+  @override
+  String get temperature => 'Temperature';
+
+  @override
+  String get optimal => 'Optimal';
+
+  @override
+  String get average => 'Average';
+
+  @override
+  String get allowAutoIrrigation => 'Allow Automatic Irrigation';
+
+  @override
+  String get startManualIrrigation => 'Start Manual Irrigation';
+
+  @override
+  String get maxTimeIrrigation => 'Max. time of irrigation';
+
+  @override
+  String get criticalLevels => 'Critical Levels';
+
+  @override
+  String get agriculturist => 'Agriculturist';
+
+  @override
+  String get remove => 'REMOVE';
+
+  @override
+  String get invite => 'INVITE';
+
+  @override
+  String get searchPeople => 'Search staff...';
+
+  @override
+  String get sensors => 'Sensors';
+
+  @override
+  String get addSensor => 'ADD SENSOR';
+
+  @override
+  String get sensorId => 'Sensor ID';
+
+  @override
+  String get ssidNetwork => 'SSID Network';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String lastMaintenance(Object date) {
+    return 'Last maintenance: $date';
+  }
+
+  @override
+  String get microcontroller => 'Microcontroller';
 }

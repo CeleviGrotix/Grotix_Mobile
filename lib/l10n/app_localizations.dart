@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @sixMonths.
   ///
   /// In en, this message translates to:
-  /// **'6 meses'**
+  /// **'6 months'**
   String get sixMonths;
 
   /// No description provided for @year.
@@ -337,6 +337,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'1 year'**
   String get year;
+
+  /// No description provided for @mainTab.
+  ///
+  /// In en, this message translates to:
+  /// **'MAIN'**
+  String get mainTab;
+
+  /// No description provided for @settingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'SETTINGS'**
+  String get settingsTab;
+
+  /// No description provided for @peopleTab.
+  ///
+  /// In en, this message translates to:
+  /// **'PEOPLE'**
+  String get peopleTab;
+
+  /// No description provided for @germinationStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Germination Stage: {stage}'**
+  String germinationStage(Object stage);
+
+  /// No description provided for @latitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude: {lat}'**
+  String latitude(Object lat);
+
+  /// No description provided for @longitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude: {lng}'**
+  String longitude(Object lng);
+
+  /// No description provided for @moisture.
+  ///
+  /// In en, this message translates to:
+  /// **'Moisture'**
+  String get moisture;
+
+  /// No description provided for @lightRadiation.
+  ///
+  /// In en, this message translates to:
+  /// **'Light/Radiation'**
+  String get lightRadiation;
+
+  /// No description provided for @temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get temperature;
+
+  /// No description provided for @optimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal'**
+  String get optimal;
+
+  /// No description provided for @average.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get average;
+
+  /// No description provided for @allowAutoIrrigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Automatic Irrigation'**
+  String get allowAutoIrrigation;
+
+  /// No description provided for @startManualIrrigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Manual Irrigation'**
+  String get startManualIrrigation;
+
+  /// No description provided for @maxTimeIrrigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. time of irrigation'**
+  String get maxTimeIrrigation;
+
+  /// No description provided for @criticalLevels.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical Levels'**
+  String get criticalLevels;
+
+  /// No description provided for @agriculturist.
+  ///
+  /// In en, this message translates to:
+  /// **'Agriculturist'**
+  String get agriculturist;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'REMOVE'**
+  String get remove;
+
+  /// No description provided for @invite.
+  ///
+  /// In en, this message translates to:
+  /// **'INVITE'**
+  String get invite;
+
+  /// No description provided for @searchPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Search staff...'**
+  String get searchPeople;
+
+  /// No description provided for @sensors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors'**
+  String get sensors;
+
+  /// No description provided for @addSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD SENSOR'**
+  String get addSensor;
+
+  /// No description provided for @sensorId.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor ID'**
+  String get sensorId;
+
+  /// No description provided for @ssidNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'SSID Network'**
+  String get ssidNetwork;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @lastMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Last maintenance: {date}'**
+  String lastMaintenance(Object date);
+
+  /// No description provided for @microcontroller.
+  ///
+  /// In en, this message translates to:
+  /// **'Microcontroller'**
+  String get microcontroller;
 }
 
 class _AppLocalizationsDelegate

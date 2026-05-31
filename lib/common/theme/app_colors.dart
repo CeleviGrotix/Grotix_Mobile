@@ -19,4 +19,6 @@ class AppColors {
   static const Color darkNavBarB = Color(0xFF1A5562);   // Tono azul oscuro de la barra
   static const Color darkNavBarG = Color(0xFF084935);   // Tono verdoso oscuro de la barra
   static const Color textSecondary = Color(0xFF8E8E93);  // Gris para subtítulos y placeholders
+  static const Color coralFaded = Color(0xB2FF5757);       // Faded para toggle buttons
+
 }
