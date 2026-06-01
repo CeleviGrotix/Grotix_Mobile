@@ -1,52 +1,118 @@
+import '../entities/crop.dart';
 
+enum ZonePhase {
+  seed,
+  germination,
+  vegetative,
+  flowering,
+  fruiting,
+  harvest,
+  unknown;
 
-import 'crop.dart';
-import 'microcontroller.dart';
+  static ZonePhase fromString(String? value) {
+    return switch (value?.toUpperCase()) {
+      'SEED' => ZonePhase.seed,
+      'GERMINATION' => ZonePhase.germination,
+      'VEGETATIVE' => ZonePhase.vegetative,
+      'FLOWERING' => ZonePhase.flowering,
+      'FRUITING' => ZonePhase.fruiting,
+      'HARVEST' => ZonePhase.harvest,
+      _ => ZonePhase.unknown,
+    };
+  }
 
-enum ZoneSensorStatus { allActive, someFailing, allInactive }
+  String get label => switch (this) {
+    ZonePhase.seed => 'SEED',
+    ZonePhase.germination => 'GERMINATION',
+    ZonePhase.vegetative => 'VEGETATIVE',
+    ZonePhase.flowering => 'FLOWERING',
+    ZonePhase.fruiting => 'FRUITING',
+    ZonePhase.harvest => 'HARVEST',
+    ZonePhase.unknown => 'UNKNOWN',
+  };
+}
 
 class Zone {
-  final int zoneId;
+  final int id;
   final int farmId;
   final int cropId;
   final String currentPhase;
-  final DateTime phaseStartDate;
+  final DateTime? phaseStartDate;
   final String? imageUrl;
+  final double? latitude;
+  final double? longitude;
 
+  // Relación opcional — se carga junto a la zona cuando el backend la incluye
   final Crop? crop;
-  final List<Microcontroller> microcontrollers;
-  final DateTime? lastUpdate;
 
   const Zone({
-    required this.zoneId,
+    required this.id,
     required this.farmId,
     required this.cropId,
     required this.currentPhase,
-    required this.phaseStartDate,
+    this.phaseStartDate,
     this.imageUrl,
+    this.latitude,
+    this.longitude,
     this.crop,
-    this.microcontrollers = const [],
-    this.lastUpdate,
   });
 
-  /// Nombre a mostrar: usa el nombre del cultivo si está disponible
-  String get displayName => crop?.commonName ?? 'Zone #$zoneId';
-
-  /// Estado general de sensores basado en los microcontroladores
-  ZoneSensorStatus get sensorStatus {
-    if (microcontrollers.isEmpty) return ZoneSensorStatus.allInactive;
-
-    final activeCount =
-        microcontrollers.where((m) => m.isActive).length;
-
-    if (activeCount == microcontrollers.length) {
-      return ZoneSensorStatus.allActive;
-    } else if (activeCount == 0) {
-      return ZoneSensorStatus.allInactive;
-    } else {
-      return ZoneSensorStatus.someFailing;
-    }
+  factory Zone.fromMap(Map<String, dynamic> map, {Crop? crop}) {
+    return Zone(
+      id: map['id'] as int,
+      farmId: map['farmId'] as int,
+      cropId: map['cropId'] as int,
+      currentPhase: map['currentPhase'] as String? ?? 'UNKNOWN',
+      phaseStartDate: map['phaseStartDate'] != null
+          ? DateTime.parse(map['phaseStartDate'] as String)
+          : null,
+      imageUrl: map['imageUrl'] as String?,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      crop: crop,
+    );
   }
 
-  bool get hasActiveSensors => sensorStatus == ZoneSensorStatus.allActive;
+  Map<String, dynamic> toMap() => {
+    'cropId': cropId,
+    'currentPhase': currentPhase,
+    'phaseStartDate': phaseStartDate?.toIso8601String(),
+    'imageUrl': imageUrl,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+
+  Zone copyWith({
+    int? cropId,
+    String? currentPhase,
+    DateTime? phaseStartDate,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
+    Crop? crop,
+  }) {
+    return Zone(
+      id: id,
+      farmId: farmId,
+      cropId: cropId ?? this.cropId,
+      currentPhase: currentPhase ?? this.currentPhase,
+      phaseStartDate: phaseStartDate ?? this.phaseStartDate,
+      imageUrl: imageUrl ?? this.imageUrl,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      crop: crop ?? this.crop,
+    );
+  }
+
+  // ── Getters útiles para la UI ─────────────────────────────────────────────
+
+  ZonePhase get phase => ZonePhase.fromString(currentPhase);
+
+  /// Nombre a mostrar: usa el cultivo si está cargado, sino fallback al id
+  String get displayName => crop?.commonName ?? 'Zone #$id';
+
+  /// Días desde que empezó la fase actual
+  int? get daysInPhase => phaseStartDate != null
+      ? DateTime.now().difference(phaseStartDate!).inDays
+      : null;
 }
