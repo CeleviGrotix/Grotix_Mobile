@@ -103,6 +103,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get zoneStatus => 'ESTADO DE ZONAS';
 
   @override
+  String get taxId => 'RUC / NIT';
+
+  @override
+  String get save => 'GUARDAR';
+
+  @override
+  String get notifications => 'NOTIFICACIONES';
+
+  @override
+  String get pushNotifications => 'Notificaciones push';
+
+  @override
+  String get emailNotifications => 'Notificaciones por email';
+
+  @override
+  String get associationName => 'Nombre de asociación';
+
+  @override
+  String get retry => 'Reintentar';
+
+  @override
   String get generateReport => 'Generar Reporte';
 
   @override
@@ -258,4 +279,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get goToSignIn => 'Ir al inicio de sesión';
+
+  @override
+  String get profileUpdatedSuccess => 'Perfil actualizado con éxito';
+
+  @override
+  String get errorUpdatingProfile => 'Error al actualizar el perfil';
+
+  @override
+  String get profilePictureUpdated => 'Foto de perfil actualizada';
+
+  @override
+  String get errorUpdatingPicture => 'No se pudo actualizar la imagen';
+
+  @override
+  String get sessionExpired => 'Sesión expirada';
+
+  @override
+  String get failedToLoadProfile => 'Error al cargar el perfil';
 }

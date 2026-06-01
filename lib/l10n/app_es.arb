@@ -3,7 +3,9 @@
   "hello": "¡Hola, {name}!",
   "@hello": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "personalInfo": "INFO PERSONAL",
@@ -29,13 +31,17 @@
   "lastUpdate": "Última actualización {time}",
   "@lastUpdate": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "stage": "Etapa: {stage}",
   "@stage": {
     "placeholders": {
-      "stage": { "type": "String" }
+      "stage": {
+        "type": "String"
+      }
     }
   },
   "cultivationAreas": "Áreas de Cultivo",
@@ -44,6 +50,13 @@
   "aiImageProcessing": "Procesamiento IA de Imágenes",
   "aiTrustLevel": "Nivel de Confianza IA",
   "zoneStatus": "ESTADO DE ZONAS",
+  "taxId": "RUC / NIT",
+  "save": "GUARDAR",
+  "notifications": "NOTIFICACIONES",
+  "pushNotifications": "Notificaciones push",
+  "emailNotifications": "Notificaciones por email",
+  "associationName": "Nombre de asociación",
+  "retry": "Reintentar",
   "generateReport": "Generar Reporte",
   "irrigation": "Riego",
   "start": "Inicio",
@@ -92,5 +105,11 @@
   "register": "Registrarse",
   "accountCreated": "¡Cuenta creada!",
   "accountCreatedSubtitle": "Ahora puedes iniciar sesión con tus credenciales.",
-  "goToSignIn": "Ir al inicio de sesión"
+  "goToSignIn": "Ir al inicio de sesión",
+  "profileUpdatedSuccess": "Perfil actualizado con éxito",
+  "errorUpdatingProfile": "Error al actualizar el perfil",
+  "profilePictureUpdated": "Foto de perfil actualizada",
+  "errorUpdatingPicture": "No se pudo actualizar la imagen",
+  "sessionExpired": "Sesión expirada",
+  "failedToLoadProfile": "Error al cargar el perfil"
 }

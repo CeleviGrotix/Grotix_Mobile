@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../../common/di/locale_provider.dart';
-import '../../../../../common/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grotix/common/di/locale_provider.dart';
+import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../domain/entities/user_profile.dart';
+import '../provider/profile_provider.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/profile_info_field.dart';
-
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,66 +19,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isEditing = false;
-
-  // TODO: reemplazar con provider/repositorio real
-  UserProfile _profile = const UserProfile(
-    userId: 1,
-    name: 'Ana María',
-    email: 'anamaria@grotix.com',
-    phone: '+51 987 654 321',
-    role: 'Farm Manager',
-    profilePictureUrl: null,
-  );
-
-  late final TextEditingController _nameController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _phoneController;
-
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: _profile.name);
-    _emailController = TextEditingController(text: _profile.email);
-    _phoneController = TextEditingController(text: _profile.phone ?? '');
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  void _toggleEdit() {
-    if (_isEditing) {
-      // Guardar cambios
-      setState(() {
-        _profile = _profile.copyWith(
-          name: _nameController.text,
-          email: _emailController.text,
-          phone: _phoneController.text,
-        );
-        _isEditing = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.changesSaved),
-          backgroundColor: AppColors.greenEmerald,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      setState(() => _isEditing = true);
-    }
+    // Carga el perfil real al entrar a la página
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileProvider>().loadProfile();
+      context.read<ProfileProvider>().loadUnreadCount();
+    });
   }
 
   Future<void> _onLogout() async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
         title: Text(l10n.logoutConfirmTitle,
             style: const TextStyle(color: AppColors.white)),
@@ -86,28 +41,76 @@ class _ProfilePageState extends State<ProfilePage> {
             style: TextStyle(color: AppColors.white.withOpacity(0.7))),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            // para cerrar SOLO el diálogo
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.cancel,
                 style: TextStyle(color: AppColors.white.withOpacity(0.6))),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(l10n.confirm,
                 style: const TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
+
+    // Solo si se confirmó de verdad, procedemos al logout
+    if (confirmed == true && mounted) {
       await context.read<AuthProvider>().logout();
-      if (mounted) context.go('/login');
+      if (mounted) {
+        // Usamos go para resetear el stack de navegación al login
+        context.go('/login');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final profileProvider = context.watch<ProfileProvider>();
     final localeProvider = context.watch<LocaleProvider>();
+    final user = profileProvider.user;
+
+    // Loading inicial
+    if (profileProvider.isLoading && user == null) {
+      return const Scaffold(
+        backgroundColor: AppColors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.greenEmerald),
+        ),
+      );
+    }
+
+    // Error al cargar
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(FontAwesomeIcons.circleExclamation,
+                  size: 40, color: AppColors.white.withOpacity(0.3)),
+              const SizedBox(height: 16),
+              Text(profileProvider.errorMessage ?? 'Could not load profile',
+                  style: TextStyle(
+                      color: AppColors.white.withOpacity(0.5), fontSize: 15)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: profileProvider.loadProfile,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.greenEmerald),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isEditing = profileProvider.isEditing;
+    final roleName = user.isAdmin ? 'Administrator' : 'User';
 
     return Scaffold(
       backgroundColor: AppColors.black,
@@ -121,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Saludo
               Text(
-                l10n.hello(_profile.firstName),
+                l10n.hello(user.displayName.split(' ').first),
                 style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 30,
@@ -130,11 +133,10 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 24),
 
-              // ── PERSONAL INFO ──────────────────────────────────
+              // ── PERSONAL INFO ─────────────────────────────────
               _SectionHeader(label: l10n.personalInfo),
               const SizedBox(height: 16),
 
-              // Card con avatar + nombre + campos
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -144,14 +146,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Fila: avatar izquierda + nombre/rol derecha
+                    // Avatar + nombre + rol
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         _ProfileAvatar(
-                          imageUrl: _profile.profilePictureUrl,
-                          isEditing: _isEditing,
-                          onTap: _isEditing ? _onPickImage : null,
+                          imageUrl: user.profilePicture,
+                          isEditing: isEditing,
+                          onTap: isEditing
+                              ? () => profileProvider
+                              .pickAndUploadProfilePicture(context)
+                              : null,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -159,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _profile.name,
+                                user.displayName,
                                 style: const TextStyle(
                                   color: AppColors.white,
                                   fontSize: 22,
@@ -168,10 +173,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _profile.role,
-                                style: TextStyle(
-                                  color: AppColors.blueCerulean.withOpacity(0.9),
-                                  fontSize: 18,
+                                roleName,
+                                style: const TextStyle(
+                                  color: AppColors.greenEmerald,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -182,26 +187,36 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Campos
+                    // Campos editables
                     ProfileInfoField(
-                      label: l10n.fullName,
-                      value: _profile.name,
-                      enabled: _isEditing,
-                      controller: _nameController,
+                      label: l10n.associationName,
+                      value: user.name, //TODO: CONECTAR A LA ASOCIACION QUE PERTENECE
+                      enabled: isEditing,
+                      controller: profileProvider.nameController,
                     ),
                     const SizedBox(height: 12),
+
+                    // Email — nunca editable (es la identidad)
                     ProfileInfoField(
                       label: l10n.email,
-                      value: _profile.email,
-                      enabled: _isEditing,
-                      controller: _emailController,
+                      value: user.email,
+                      enabled: false,
                     ),
                     const SizedBox(height: 12),
+
                     ProfileInfoField(
                       label: l10n.phone,
-                      value: _profile.phone,
-                      enabled: _isEditing,
-                      controller: _phoneController,
+                      value: user.phone,
+                      enabled: isEditing,
+                      controller: profileProvider.phoneController,
+                    ),
+                    const SizedBox(height: 12),
+
+                    ProfileInfoField(
+                      label: l10n.taxId,
+                      value: user.taxId,
+                      enabled: isEditing,
+                      controller: profileProvider.taxIdController,
                     ),
                   ],
                 ),
@@ -209,30 +224,79 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 14),
 
-              // Botones FUERA del card, en una row
+              // Botones EDIT / LOG OUT fuera del card
               Row(
                 children: [
                   Expanded(
                     child: _ActionButton(
-                      label: _isEditing ? l10n.changesSaved : l10n.edit,
+                      label: isEditing ? l10n.save : l10n.edit,
                       color: AppColors.greenEmerald,
-                      onTap: _toggleEdit,
+                      isLoading: profileProvider.isLoading,
+                      onTap: isEditing
+                          ? () => profileProvider.saveProfileChanges(context)
+                          : profileProvider.toggleEditing,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: _ActionButton(
-                      label: l10n.logout,
-                      color: AppColors.redCoral,
-                      onTap: _onLogout,
+                  if (isEditing)
+                    Expanded(
+                      child: _ActionButton(
+                        label: l10n.cancel,
+                        color: Colors.white24,
+                        onTap: profileProvider.toggleEditing,
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: _ActionButton(
+                        label: l10n.logout,
+                        color: Colors.redAccent,
+                        onTap: _onLogout,
+                      ),
                     ),
-                  ),
                 ],
               ),
 
               const SizedBox(height: 28),
 
-              // ── SETTINGS ──────────────────────────────────────
+              // ── NOTIFICATIONS ─────────────────────────────────
+              _SectionHeader(label: l10n.notifications),
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.darkCardBg,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    _NotificationToggle(
+                      label: l10n.pushNotifications,
+                      icon: FontAwesomeIcons.bell,
+                      value: user.preferences['push'] == true,
+                      onChanged: (val) => profileProvider.updatePreferences({
+                        ...user.preferences,
+                        'push': val,
+                      }),
+                    ),
+                    const Divider(color: Colors.white12, height: 24),
+                    _NotificationToggle(
+                      label: l10n.emailNotifications,
+                      icon: FontAwesomeIcons.envelope,
+                      value: user.preferences['email'] == true,
+                      onChanged: (val) => profileProvider.updatePreferences({
+                        ...user.preferences,
+                        'email': val,
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── SETTINGS ─────────────────────────────────────
               _SectionHeader(label: l10n.settings),
               const SizedBox(height: 16),
 
@@ -245,7 +309,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Idioma
                     Row(
                       children: [
                         FaIcon(FontAwesomeIcons.globe,
@@ -255,20 +318,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           l10n.language,
                           style: TextStyle(
-                            color: AppColors.white.withOpacity(0.6),
-                            fontSize: 13,
-                          ),
+                              color: AppColors.white.withOpacity(0.6),
+                              fontSize: 15),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     LanguageSelector(
                       isSpanish: localeProvider.isSpanish,
-                      onChanged: (toSpanish) {
-                        localeProvider.setLocale(
-                          Locale(toSpanish ? 'es' : 'en'),
-                        );
-                      },
+                      onChanged: (toSpanish) => localeProvider.setLocale(
+                        Locale(toSpanish ? 'es' : 'en'),
+                      ),
                     ),
                   ],
                 ),
@@ -281,13 +341,9 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
-  void _onPickImage() {
-    // TODO: usar image_picker para seleccionar foto de perfil
-  }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Widgets privados ─────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String label;
@@ -299,7 +355,7 @@ class _SectionHeader extends StatelessWidget {
       label,
       style: const TextStyle(
         color: Colors.redAccent,
-        fontSize: 22,
+        fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.2,
       ),
@@ -324,7 +380,7 @@ class _ProfileAvatar extends StatelessWidget {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               color: Colors.white10,
               image: imageUrl != null
                   ? DecorationImage(
@@ -340,7 +396,7 @@ class _ProfileAvatar extends StatelessWidget {
               bottom: 4,
               right: 4,
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(5),
                 decoration: const BoxDecoration(
                   color: AppColors.greenEmerald,
                   shape: BoxShape.circle,
@@ -359,24 +415,35 @@ class _ActionButton extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool isLoading;
 
   const _ActionButton({
     required this.label,
     required this.color,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(
+        child: isLoading
+            ? const Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.white),
+          ),
+        )
+            : Text(
           label,
           textAlign: TextAlign.center,
           style: const TextStyle(
@@ -387,6 +454,44 @@ class _ActionButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _NotificationToggle extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _NotificationToggle({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        FaIcon(icon, size: 15, color: AppColors.white.withOpacity(0.6)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+                color: AppColors.white.withOpacity(0.85), fontSize: 15),
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.greenEmerald,
+          inactiveThumbColor: Colors.white38,
+          inactiveTrackColor: Colors.white12,
+        ),
+      ],
     );
   }
 }

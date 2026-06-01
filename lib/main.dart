@@ -7,6 +7,9 @@ import 'common/routes/app_router.dart';
 import 'common/theme/app_theme.dart';
 import 'features/identity/auth/auth_injection.dart';
 import 'features/identity/auth/presentation/providers/auth_provider.dart';
+import 'features/identity/profile/infrastructure/datasource/profile_remote_datasource.dart';
+import 'features/identity/profile/infrastructure/repositories/profile_repository_impl.dart';
+import 'features/identity/profile/presentation/provider/profile_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
@@ -30,6 +33,11 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider(
+            repository: ProfileRepositoryImpl(ProfileRemoteDatasource()),
+          )..loadProfile(),
+        ),
       ],
       child: Consumer2<LocaleProvider, AuthProvider>(
         builder: (context, localeProvider, auth, _) {

@@ -272,6 +272,48 @@ abstract class AppLocalizations {
   /// **'ZONE STATUS'**
   String get zoneStatus;
 
+  /// No description provided for @taxId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ID'**
+  String get taxId;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get save;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTIFICATIONS'**
+  String get notifications;
+
+  /// No description provided for @pushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get pushNotifications;
+
+  /// No description provided for @emailNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email notifications'**
+  String get emailNotifications;
+
+  /// No description provided for @associationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Association Name'**
+  String get associationName;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
   /// No description provided for @generateReport.
   ///
   /// In en, this message translates to:
@@ -565,6 +607,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to Sign In'**
   String get goToSignIn;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @errorUpdatingProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating profile'**
+  String get errorUpdatingProfile;
+
+  /// No description provided for @profilePictureUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture updated'**
+  String get profilePictureUpdated;
+
+  /// No description provided for @errorUpdatingPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update picture'**
+  String get errorUpdatingPicture;
+
+  /// No description provided for @sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired'**
+  String get sessionExpired;
+
+  /// No description provided for @failedToLoadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profile'**
+  String get failedToLoadProfile;
 }
 
 class _AppLocalizationsDelegate

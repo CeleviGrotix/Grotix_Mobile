@@ -3,7 +3,9 @@
   "hello": "Hello, {name}!",
   "@hello": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "personalInfo": "PERSONAL INFO",
@@ -29,13 +31,17 @@
   "lastUpdate": "Last update {time}",
   "@lastUpdate": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "stage": "Stage: {stage}",
   "@stage": {
     "placeholders": {
-      "stage": { "type": "String" }
+      "stage": {
+        "type": "String"
+      }
     }
   },
   "cultivationAreas": "Cultivation Areas",
@@ -44,6 +50,13 @@
   "aiImageProcessing": "AI Image Processing",
   "aiTrustLevel": "AI Trust Level",
   "zoneStatus": "ZONE STATUS",
+  "taxId": "Tax ID",
+  "save": "SAVE",
+  "notifications": "NOTIFICATIONS",
+  "pushNotifications": "Push notifications",
+  "emailNotifications": "Email notifications",
+  "associationName": "Association Name",
+  "retry": "Retry",
   "generateReport": "Generate Report",
   "irrigation": "Irrigation",
   "start": "Start",
@@ -92,5 +105,11 @@
   "register": "Register",
   "accountCreated": "Account created!",
   "accountCreatedSubtitle": "You can now sign in with your credentials.",
-  "goToSignIn": "Go to Sign In"
+  "goToSignIn": "Go to Sign In",
+  "profileUpdatedSuccess": "Profile updated successfully",
+  "errorUpdatingProfile": "Error updating profile",
+  "profilePictureUpdated": "Profile picture updated",
+  "errorUpdatingPicture": "Could not update picture",
+  "sessionExpired": "Session expired",
+  "failedToLoadProfile": "Failed to load profile"
 }

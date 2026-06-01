@@ -102,6 +102,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zoneStatus => 'ZONE STATUS';
 
   @override
+  String get taxId => 'Tax ID';
+
+  @override
+  String get save => 'SAVE';
+
+  @override
+  String get notifications => 'NOTIFICATIONS';
+
+  @override
+  String get pushNotifications => 'Push notifications';
+
+  @override
+  String get emailNotifications => 'Email notifications';
+
+  @override
+  String get associationName => 'Association Name';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get generateReport => 'Generate Report';
 
   @override
@@ -256,4 +277,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goToSignIn => 'Go to Sign In';
+
+  @override
+  String get profileUpdatedSuccess => 'Profile updated successfully';
+
+  @override
+  String get errorUpdatingProfile => 'Error updating profile';
+
+  @override
+  String get profilePictureUpdated => 'Profile picture updated';
+
+  @override
+  String get errorUpdatingPicture => 'Could not update picture';
+
+  @override
+  String get sessionExpired => 'Session expired';
+
+  @override
+  String get failedToLoadProfile => 'Failed to load profile';
 }
