@@ -78,8 +78,8 @@ class _ZoneInfo extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     // Formateamos la hora
-    final timeString = zone.lastUpdate != null
-        ? DateFormat('HH:mm').format(zone.lastUpdate!)
+    final timeString = zone.phaseStartDate != null
+        ? DateFormat('HH:mm').format(zone.phaseStartDate!)
         : '--:--';
 
     return Padding(
@@ -106,54 +106,62 @@ class _ZoneInfo extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          _SensorStatusBadge(status: zone.sensorStatus),
+          _ZonePhaseBadge(phase: zone.phase),
         ],
       ),
     );
   }
 }
 
-class _SensorStatusBadge extends StatelessWidget {
-  final ZoneSensorStatus status;
+// TODO: REEMPLAZAR ESTE FAKE DE FASE DE ZONA POR ESTADO DE SENSORES
+class _ZonePhaseBadge extends StatelessWidget {
+  final ZonePhase phase;
 
-  const _SensorStatusBadge({required this.status});
+  const _ZonePhaseBadge({required this.phase});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // Mapeamos el estado a ícono, texto traducido y color
-    final (icon, label, color) = switch (status) {
-      ZoneSensorStatus.allActive => (
-      FontAwesomeIcons.circleCheck,
-      l10n.allSensorsActive,
-      AppColors.greenEmerald,
-      ),
-      ZoneSensorStatus.someFailing => (
-      FontAwesomeIcons.triangleExclamation,
-      l10n.someSensorsFailing,
-      AppColors.redCoral,
-      ),
-      ZoneSensorStatus.allInactive => (
-      FontAwesomeIcons.circleXmark,
-      l10n.noActiveSensors,
-      Colors.orange,
-      ),
+    // Mapeamos cada fase a su icono y color correspondiente
+    // Usamos el label que ya definiste en tu enum para la traducción
+    final (icon, color) = switch (phase) {
+      ZonePhase.seed => (FontAwesomeIcons.seedling, Colors.brown),
+      ZonePhase.germination => (FontAwesomeIcons.leaf, Colors.lightGreen),
+      ZonePhase.vegetative => (FontAwesomeIcons.plantWilt, AppColors.greenEmerald),
+      ZonePhase.flowering => (FontAwesomeIcons.clover, Colors.pinkAccent),
+      ZonePhase.fruiting => (FontAwesomeIcons.appleWhole, Colors.orange),
+      ZonePhase.harvest => (FontAwesomeIcons.wheatAwn, Colors.yellow),
+      ZonePhase.unknown => (FontAwesomeIcons.question, Colors.grey),
     };
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         FaIcon(icon, size: 12, color: color),
         const SizedBox(width: 5),
-        Expanded(
+        Flexible(
           child: Text(
-            label,
-            style: TextStyle(color: color, fontSize: 13),
+            _getPhaseLabel(phase, l10n),
+            style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w500),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
+  }
+
+  // Helper para obtener el texto traducido de la fase
+  String _getPhaseLabel(ZonePhase phase, AppLocalizations l10n) {
+    return switch (phase) {
+      ZonePhase.seed => l10n.phaseSeed,
+      ZonePhase.germination => l10n.phaseGermination,
+      ZonePhase.vegetative => l10n.phaseVegetative,
+      ZonePhase.flowering => l10n.phaseFlowering,
+      ZonePhase.fruiting => l10n.phaseFruiting,
+      ZonePhase.harvest => l10n.phaseHarvest,
+      ZonePhase.unknown => l10n.phaseUnknown,
+    };
   }
 }

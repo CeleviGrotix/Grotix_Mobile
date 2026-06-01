@@ -297,4 +297,46 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get failedToLoadProfile => 'Error al cargar el perfil';
+
+  @override
+  String get filterAndSort => 'Filtrar y Ordenar';
+
+  @override
+  String get sortBy => 'ORDENAR POR';
+
+  @override
+  String get filterByPhase => 'FILTRAR POR FASE';
+
+  @override
+  String get nameAz => 'Nombre (A-Z)';
+
+  @override
+  String get nameZa => 'Nombre (Z-A)';
+
+  @override
+  String get newestPhase => 'Fase más reciente';
+
+  @override
+  String get oldestPhase => 'Fase más antigua';
+
+  @override
+  String get phaseSeed => 'Semilla';
+
+  @override
+  String get phaseGermination => 'Germinación';
+
+  @override
+  String get phaseVegetative => 'Vegetativo';
+
+  @override
+  String get phaseFlowering => 'Floración';
+
+  @override
+  String get phaseFruiting => 'Fructificación';
+
+  @override
+  String get phaseHarvest => 'Cosecha';
+
+  @override
+  String get phaseUnknown => 'Desconocido';
 }

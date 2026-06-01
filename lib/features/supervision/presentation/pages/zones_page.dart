@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:grotix/l10n/app_localizations.dart'; // Importante
+import 'package:provider/provider.dart';
 import '../../../../common/theme/app_colors.dart';
 import '../../../../common/utils/app_icons.dart';
-import '../../domain/entities/crop.dart';
-import '../../domain/entities/microcontroller.dart';
 import '../../domain/entities/zone.dart';
+import '../providers/zone_provider.dart';
 import '../widgets/zone_card.dart';
 
 class ZonesPage extends StatefulWidget {
@@ -17,86 +18,21 @@ class ZonesPage extends StatefulWidget {
 
 class _ZonesPageState extends State<ZonesPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  // TODO: reemplazar por datos reales del repositorio / provider
-  final List<Zone> _zones = [
-    Zone(
-      zoneId: 1,
-      farmId: 1,
-      cropId: 1,
-      currentPhase: 'Vegetative',
-      phaseStartDate: DateTime.now().subtract(const Duration(days: 10)),
-      imageUrl: null,
-      lastUpdate: DateTime.now().subtract(const Duration(minutes: 5)),
-      crop: const Crop(
-        cropId: 1,
-        commonName: 'Zona Tomatitos',
-        scientificName: 'Solanum lycopersicum',
-        optimalTemperature: 22,
-        optimalHumidity: 70,
-        optimalLight: 8,
-        maxStressTime: 48,
-      ),
-      microcontrollers: [
-        Microcontroller(
-          deviceId: 1,
-          zoneId: 1,
-          model: 'ESP32',
-          macAddress: 'AA:BB:CC:DD:EE:FF',
-          status: MicrocontrollerStatus.active,
-          lastSeen: DateTime.now(),
-        ),
-      ],
-    ),
-    Zone(
-      zoneId: 2,
-      farmId: 1,
-      cropId: 2,
-      currentPhase: 'Growth',
-      phaseStartDate: DateTime.now().subtract(const Duration(days: 20)),
-      imageUrl: null,
-      lastUpdate: DateTime.now().subtract(const Duration(minutes: 15)),
-      crop: const Crop(
-        cropId: 2,
-        commonName: 'Área de Zanahorias',
-        scientificName: 'Daucus carota',
-        optimalTemperature: 18,
-        optimalHumidity: 65,
-        optimalLight: 7,
-        maxStressTime: 36,
-      ),
-      microcontrollers: [
-        Microcontroller(
-          deviceId: 2,
-          zoneId: 2,
-          model: 'ESP32',
-          macAddress: 'AA:BB:CC:DD:EE:01',
-          status: MicrocontrollerStatus.error,
-          lastSeen: DateTime.now().subtract(const Duration(hours: 1)),
-        ),
-      ],
-    ),
-  ];
-
-  List<Zone> get _filteredZones {
-    if (_searchQuery.isEmpty) return _zones;
-    return _zones
-        .where((z) =>
-        z.displayName.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
-  }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    // Cargamos las zonas al entrar.
+    // TODO: Obtener el farmId actual (ej. de un GlobalProvider o argumento)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ZoneProvider>().loadZones(1);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Obtenemos las traducciones
     final l10n = AppLocalizations.of(context)!;
+    final zoneProvider = context.watch<ZoneProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.black,
@@ -107,34 +43,24 @@ class _ZonesPageState extends State<ZonesPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              Text(
-                l10n.cultivationAreas, // Traducción del título
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(l10n.cultivationAreas, style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),),
               const SizedBox(height: 16),
+
               _SearchAndActions(
                 controller: _searchController,
-                onChanged: (v) => setState(() => _searchQuery = v),
+                onChanged: (v) => zoneProvider.setSearchQuery(v),
                 onAdd: _onAddZone,
                 onFilter: _onFilter,
               ),
+
               const SizedBox(height: 20),
+
               Expanded(
-                child: _filteredZones.isEmpty
-                    ? const _EmptyState()
-                    : ListView.separated(
-                  itemCount: _filteredZones.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 12),
-                  itemBuilder: (_, i) => ZoneCard(
-                    zone: _filteredZones[i],
-                    onTap: () => _onZoneTap(_filteredZones[i]),
-                  ),
-                ),
+                child: _buildContent(zoneProvider, l10n),
               ),
             ],
           ),
@@ -143,16 +69,93 @@ class _ZonesPageState extends State<ZonesPage> {
     );
   }
 
+  Widget _buildContent(ZoneProvider provider, AppLocalizations l10n) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.greenEmerald));
+    }
+
+    if (provider.zones.isEmpty) {
+      return const _EmptyState();
+    }
+
+    return ListView.separated(
+      itemCount: provider.zones.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, i) => ZoneCard(
+        zone: provider.zones[i],
+        onTap: () => _onZoneTap(provider.zones[i]),
+      ),
+    );
+  }
+
+  // TODO: FORMULARIO CREACIÓN ZONA
   void _onAddZone() {
-    // TODO: navegar a CreateZonePage
+    debugPrint('Navegando a creación de zona...');
   }
 
   void _onFilter() {
-    // TODO: mostrar bottom sheet de filtros
+    final l10n = AppLocalizations.of(context)!;
+    final provider = context.read<ZoneProvider>();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.darkCardBg,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.filterAndSort, style: const TextStyle(color: AppColors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+
+            // SECCIÓN: ORDENAR
+            Text(l10n.sortBy, style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 14)),
+            _buildSortTile(l10n.nameAz, ZoneSortOption.nameAz, provider),
+            _buildSortTile(l10n.nameZa, ZoneSortOption.nameZa, provider),
+            _buildSortTile(l10n.newestPhase, ZoneSortOption.phaseDateNewest, provider),
+
+            const Divider(color: Colors.white10),
+
+            // SECCIÓN: FILTRAR POR FASE
+            Text(l10n.filterByPhase, style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 14)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: ZonePhase.values.where((p) => p != ZonePhase.unknown).map((phase) {
+                final isSelected = provider.phaseFilter == phase;
+                return ChoiceChip(
+                  label: Text(phase.label),
+                  selected: isSelected,
+                  onSelected: (selected) => provider.setPhaseFilter(selected ? phase : null),
+                  selectedColor: AppColors.greenEmerald,
+                  backgroundColor: AppColors.darkNavBarB,
+                  labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortTile(String title, ZoneSortOption option, ZoneProvider provider) {
+    final isSelected = provider.sortOption == option;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, style: TextStyle(color: isSelected ? AppColors.greenEmerald : AppColors.white)),
+      trailing: isSelected ? const Icon(Icons.check, color: AppColors.greenEmerald) : null,
+      onTap: () => provider.setSortOption(option),
+    );
   }
 
   void _onZoneTap(Zone zone) {
-    // TODO: navegar a ZoneDetailPage
+    // Navegación al detalle usando GoRouter y pasando el ID
+    context.push('/zones/${zone.id}');
   }
 }
 

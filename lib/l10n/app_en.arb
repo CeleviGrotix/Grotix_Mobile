@@ -111,5 +111,19 @@
   "profilePictureUpdated": "Profile picture updated",
   "errorUpdatingPicture": "Could not update picture",
   "sessionExpired": "Session expired",
-  "failedToLoadProfile": "Failed to load profile"
+  "failedToLoadProfile": "Failed to load profile",
+  "filterAndSort": "Filter and Order",
+  "sortBy": "ORDER BY",
+  "filterByPhase": "FILTER BY PHASE",
+  "nameAz": "Name (A-Z)",
+  "nameZa": "Name (Z-A)",
+  "newestPhase": "Most recent",
+  "oldestPhase": "Oldest",
+  "phaseSeed": "Seed",
+  "phaseGermination": "Germination",
+  "phaseVegetative": "Vegetative",
+  "phaseFlowering": "Flowering",
+  "phaseFruiting": "Fruiting",
+  "phaseHarvest": "Harvest",
+  "phaseUnknown": "Unknown"
 }

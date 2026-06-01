@@ -643,6 +643,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load profile'**
   String get failedToLoadProfile;
+
+  /// No description provided for @filterAndSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter and Order'**
+  String get filterAndSort;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'ORDER BY'**
+  String get sortBy;
+
+  /// No description provided for @filterByPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'FILTER BY PHASE'**
+  String get filterByPhase;
+
+  /// No description provided for @nameAz.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A-Z)'**
+  String get nameAz;
+
+  /// No description provided for @nameZa.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z-A)'**
+  String get nameZa;
+
+  /// No description provided for @newestPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Most recent'**
+  String get newestPhase;
+
+  /// No description provided for @oldestPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get oldestPhase;
+
+  /// No description provided for @phaseSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get phaseSeed;
+
+  /// No description provided for @phaseGermination.
+  ///
+  /// In en, this message translates to:
+  /// **'Germination'**
+  String get phaseGermination;
+
+  /// No description provided for @phaseVegetative.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetative'**
+  String get phaseVegetative;
+
+  /// No description provided for @phaseFlowering.
+  ///
+  /// In en, this message translates to:
+  /// **'Flowering'**
+  String get phaseFlowering;
+
+  /// No description provided for @phaseFruiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruiting'**
+  String get phaseFruiting;
+
+  /// No description provided for @phaseHarvest.
+  ///
+  /// In en, this message translates to:
+  /// **'Harvest'**
+  String get phaseHarvest;
+
+  /// No description provided for @phaseUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get phaseUnknown;
 }
 
 class _AppLocalizationsDelegate
