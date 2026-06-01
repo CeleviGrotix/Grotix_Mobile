@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../../../../../common/config/env.dart';
 import '../../domain/entities/auth_session.dart';
 import '../model/user_model.dart';
 
 class AuthRemoteDatasource {
-  static const String _baseUrl = 'http://localhost:5101/api/v1';
+  static const String _base = Env.apiBase;
+  static const String _baseUrl = '$_base/api/v1';
 
   final http.Client _client;
   AuthRemoteDatasource({http.Client? client})
@@ -85,12 +87,14 @@ class AuthRemoteDatasource {
     );
 
     if (response.statusCode == 200) {
-      return UserModel.fromJson(
-          jsonDecode(response.body) as Map<String, dynamic>);
+      return UserModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     }
 
+    // AGREGA ESTO PARA DEPURAR:
+    print('Error en getMe: ${response.statusCode} - ${response.body}');
+
     if (response.statusCode == 401) throw AuthException('Session expired');
-    throw AuthException('Failed to load profile');
+    throw AuthException('Failed to load profile: ${response.statusCode}');
   }
 }
 

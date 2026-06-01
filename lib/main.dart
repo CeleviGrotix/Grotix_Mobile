@@ -21,12 +21,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // Creamos el AuthProvider aquí para poder pasarlo al router
+  late final AuthProvider _authProvider = buildAuthProvider();
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => buildAuthProvider()), // NUEVO
       ],
       child: Consumer2<LocaleProvider, AuthProvider>(
         builder: (context, localeProvider, auth, _) {
@@ -34,7 +37,8 @@ class _MyAppState extends State<MyApp> {
             title: 'Grotix',
             theme: getAppTheme(),
             debugShowCheckedModeBanner: false,
-            routerConfig: appRouter,
+            // El router necesita el authProvider para el refreshListenable
+            routerConfig: buildAppRouter(_authProvider),
             locale: localeProvider.locale,
             supportedLocales: const [Locale('en'), Locale('es')],
             localizationsDelegates: const [

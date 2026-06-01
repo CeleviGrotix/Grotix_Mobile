@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grotix/common/theme/app_colors.dart';
-import 'package:grotix/l10n/app_localizations.dart'; // Importa i18n
+import 'package:grotix/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_field.dart';
@@ -52,12 +52,12 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final l10n = AppLocalizations.of(context)!; // Atajo para i18n
+    final l10n = AppLocalizations.of(context)!; // Atajo l10n
 
     if (_registeredOk) {
       return _SuccessScreen(
         onGoToLogin: () => context.go('/login'),
-        l10n: l10n, // Pasamos l10n a la pantalla de éxito
+        l10n: l10n, // Pasamos el l10n a la pantalla de éxito
       );
     }
 
@@ -176,7 +176,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 class _SuccessScreen extends StatelessWidget {
   final VoidCallback onGoToLogin;
-  final AppLocalizations l10n; // Recibe l10n
+  final AppLocalizations l10n; // Recibimos l10n aquí
 
   const _SuccessScreen({required this.onGoToLogin, required this.l10n});
 
@@ -219,11 +219,12 @@ class _SuccessScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(
-                      l10n.goToSignIn, // i18n
-                      style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700)),
+                    l10n.goToSignIn, // i18n
+                    style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
