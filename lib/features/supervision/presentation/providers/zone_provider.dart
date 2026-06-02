@@ -51,7 +51,6 @@ class ZoneProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Traer todas las farms y filtrar por associationId
       final allFarms = await _farmService.getAllFarms();
       final farm = allFarms.firstWhere(
             (f) => f.associationId == associationId,
@@ -59,10 +58,8 @@ class ZoneProvider extends ChangeNotifier {
       );
       _currentFarm = farm;
 
-      // 2. Traer las zonas de esa farm
       final rawZones = await _zoneService.getZonesByFarm(farm.id);
 
-      // 3. Enriquecer con crops para tener displayName correcto
       final cropMap = await _cropService.getCropMap();
       _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
 
@@ -216,11 +213,25 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshZone(int zoneId) async {
+    try {
+      final updated = await _zoneService.getZoneDetails(zoneId);
+      if (updated == null) return;
+      final cropMap = await _cropService.getCropMap();
+      final enriched = _zoneService.enrichWithCrops([updated], cropMap).first;
+      _zones = _zones.map((z) => z.id == zoneId ? enriched : z).toList();
+      _applyFilters();
+    } catch (e) {
+      debugPrint("🔴 [ZoneProvider] refreshZone error: $e");
+    }
+  }
+
   Future<bool> updateZonePhase(int zoneId, ZonePhase newPhase) async {
     try {
       final updated = await _zoneService.updatePhase(zoneId, newPhase);
       if (updated == null) return false;
 
+      // Actualiza localmente sin recargar todo
       _zones = _zones.map((z) {
         if (z.id == zoneId) {
           return z.copyWith(
