@@ -339,4 +339,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get phaseUnknown => 'Desconocido';
+
+  @override
+  String get saveChanges => 'Guardar cambios';
+
+  @override
+  String get since => 'Desde el';
+
+  @override
+  String get days => 'días';
+
+  @override
+  String get zoneUpdated => 'Zona actualizada';
+
+  @override
+  String get zoneUpdateFailed => 'Error al actualizar zona';
+
+  @override
+  String get sectionPhase => 'FASE';
+
+  @override
+  String get sectionCrop => 'CULTIVO';
+
+  @override
+  String get sectionLocation => 'UBICACIÓN';
+
+  @override
+  String get sectionImageUrl => 'URL DE IMAGEN';
+
+  @override
+  String get sectionInfo => 'INFORMACIÓN';
+
+  @override
+  String get commonName => 'Nombre común';
+
+  @override
+  String get scientificName => 'Nombre científico';
+
+  @override
+  String get optimalTemp => 'Temperatura óptima';
+
+  @override
+  String get optimalHum => 'Humedad óptima';
+
+  @override
+  String get optimalLight => 'Luz óptima';
+
+  @override
+  String get maxStressTime => 'Tiempo máx. estrés';
+
+  @override
+  String get imageUrl => 'URL de Imagen';
+
+  @override
+  String get zoneId => 'ID de Zona';
+
+  @override
+  String get farmId => 'ID de Granja';
+
+  @override
+  String get longitudee => 'Longitud';
+
+  @override
+  String get latitudee => 'Latitud';
 }

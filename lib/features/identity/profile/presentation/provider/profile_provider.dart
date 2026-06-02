@@ -73,7 +73,7 @@ class ProfileProvider extends ChangeNotifier {
 
   Future<void> _loadAssociation() async {
     try {
-      final association = await _associationRepository.getMyAssociation();
+      _association = await _associationRepository.getMyAssociation();
       notifyListeners();
     } catch (e) {
       debugPrint('🔴 [ProfileProvider] loadAssociation error: $e');

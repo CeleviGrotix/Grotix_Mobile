@@ -7,6 +7,7 @@ import 'package:grotix/features/supervision/presentation/providers/zone_provider
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../identity/auth/presentation/providers/auth_provider.dart';
 
 class ZoneDetailPage extends StatefulWidget {
@@ -67,6 +68,7 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
 
   Future<void> _saveChanges() async {
     setState(() => _isSaving = true);
+    final l10n = AppLocalizations.of(context)!;
 
     final success = await context.read<ZoneProvider>().updateZonePhase(
       widget.zone.id,
@@ -101,9 +103,8 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Zone updated' : 'Failed to update zone'),
-          backgroundColor:
-          success ? AppColors.greenEmerald : Colors.redAccent,
+          content: Text(success ? l10n.zoneUpdated : l10n.zoneUpdateFailed),
+          backgroundColor: success ? AppColors.greenEmerald : Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -112,6 +113,7 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!; // Obtener l10n
     final user = context.watch<AuthProvider>().session?.user;
     final canEdit = _canEdit(user?.roleId);
     final zone = widget.zone;
@@ -123,27 +125,21 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
         backgroundColor: AppColors.black,
         elevation: 0,
         leading: IconButton(
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft,
-              color: AppColors.white, size: 18),
+          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: AppColors.white, size: 18),
           onPressed: () => context.pop(),
         ),
         title: Text(
           zone.displayName,
-          style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700),
+          style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w700),
         ),
         actions: [
           if (canEdit)
             TextButton(
               onPressed: _isSaving ? null : _toggleEdit,
               child: Text(
-                _isEditing ? 'Cancel' : 'Edit',
+                _isEditing ? l10n.cancel : l10n.edit,
                 style: TextStyle(
-                  color: _isEditing
-                      ? AppColors.white.withOpacity(0.5)
-                      : AppColors.greenEmerald,
+                  color: _isEditing ? AppColors.white.withOpacity(0.5) : AppColors.greenEmerald,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -158,146 +154,96 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-
-            // ── Imagen de la zona ──────────────────────────────
             _ZoneHeroImage(imageUrl: zone.imageUrl),
             const SizedBox(height: 24),
 
-            // ── Fase actual ────────────────────────────────────
-            _SectionHeader(label: 'PHASE'),
+            // SECCIÓN FASE
+            _SectionHeader(label: l10n.sectionPhase),
             const SizedBox(height: 12),
-
             _isEditing
                 ? _PhaseSelector(
               selected: _selectedPhase,
               onChanged: (p) => setState(() => _selectedPhase = p),
             )
                 : _InfoChip(
-              label: zone.phase.label,
+              label: _getPhaseLabel(zone.phase, l10n),
               color: _phaseColor(zone.phase),
             ),
 
             if (zone.phaseStartDate != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Since ${DateFormat('dd MMM yyyy').format(zone.phaseStartDate!)}${zone.daysInPhase != null ? ' · ${zone.daysInPhase} days' : ''}',
-                style: TextStyle(
-                    color: AppColors.white.withOpacity(0.45), fontSize: 13),
+                '${l10n.since} ${DateFormat('dd MMM yyyy').format(zone.phaseStartDate!)}${zone.daysInPhase != null ? ' · ${zone.daysInPhase} ${l10n.days}' : ''}',
+                style: TextStyle(color: AppColors.white.withOpacity(0.45), fontSize: 13),
               ),
             ],
 
             const SizedBox(height: 24),
 
-            // ── Info del cultivo ───────────────────────────────
+            // SECCIÓN CULTIVO
             if (crop != null) ...[
-              _SectionHeader(label: 'CROP'),
+              _SectionHeader(label: l10n.sectionCrop),
               const SizedBox(height: 12),
               _InfoCard(
                 children: [
-                  _DetailRow(
-                    icon: FontAwesomeIcons.seedling,
-                    label: 'Common name',
-                    value: crop.commonName,
-                  ),
-                  _DetailRow(
-                    icon: FontAwesomeIcons.microscope,
-                    label: 'Scientific name',
-                    value: crop.scientificName,
-                    italic: true,
-                  ),
+                  _DetailRow(icon: FontAwesomeIcons.seedling, label: l10n.commonName, value: crop.commonName),
+                  _DetailRow(icon: FontAwesomeIcons.microscope, label: l10n.scientificName, value: crop.scientificName, italic: true),
                   const Divider(color: Colors.white12, height: 20),
-                  _DetailRow(
-                    icon: FontAwesomeIcons.temperatureHalf,
-                    label: 'Optimal temperature',
-                    value: '${crop.optimalTemperature}°C',
-                  ),
-                  _DetailRow(
-                    icon: FontAwesomeIcons.droplet,
-                    label: 'Optimal humidity',
-                    value: '${crop.optimalHumidity}%',
-                  ),
-                  _DetailRow(
-                    icon: FontAwesomeIcons.sun,
-                    label: 'Optimal light',
-                    value: '${crop.optimalLight} lux',
-                  ),
-                  _DetailRow(
-                    icon: FontAwesomeIcons.clock,
-                    label: 'Max stress time',
-                    value: '${crop.maxStressTime} min',
-                  ),
+                  _DetailRow(icon: FontAwesomeIcons.temperatureHalf, label: l10n.optimalTemp, value: '${crop.optimalTemperature}°C'),
+                  _DetailRow(icon: FontAwesomeIcons.droplet, label: l10n.optimalHum, value: '${crop.optimalHumidity}%'),
+                  _DetailRow(icon: FontAwesomeIcons.sun, label: l10n.optimalLight, value: '${crop.optimalLight} lux'),
+                  _DetailRow(icon: FontAwesomeIcons.clock, label: l10n.maxStressTime, value: '${crop.maxStressTime} min'),
                 ],
               ),
               const SizedBox(height: 24),
             ],
 
-            // ── Ubicación ──────────────────────────────────────
-            _SectionHeader(label: 'LOCATION'),
+            // SECCIÓN UBICACIÓN
+            _SectionHeader(label: l10n.sectionLocation),
             const SizedBox(height: 12),
             _InfoCard(
               children: [
                 _EditableDetailRow(
                   icon: FontAwesomeIcons.locationDot,
-                  label: 'Latitude',
+                  label: l10n.latitudee,
                   controller: _latController,
                   value: zone.latitude?.toString() ?? '—',
                   enabled: _isEditing,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                 ),
                 _EditableDetailRow(
                   icon: FontAwesomeIcons.locationDot,
-                  label: 'Longitude',
+                  label: l10n.longitudee,
                   controller: _lngController,
                   value: zone.longitude?.toString() ?? '—',
                   enabled: _isEditing,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                 ),
               ],
             ),
 
-            const SizedBox(height: 24),
-
-            // ── Imagen URL (solo si edita) ─────────────────────
             if (_isEditing) ...[
-              _SectionHeader(label: 'IMAGE URL'),
+              const SizedBox(height: 24),
+              _SectionHeader(label: l10n.sectionImageUrl),
               const SizedBox(height: 12),
               _InfoCard(
                 children: [
-                  _EditableDetailRow(
-                    icon: FontAwesomeIcons.image,
-                    label: 'Image URL',
-                    controller: _imageController,
-                    value: zone.imageUrl ?? '—',
-                    enabled: true,
-                  ),
+                  _EditableDetailRow(icon: FontAwesomeIcons.image, label: l10n.imageUrl, controller: _imageController, value: zone.imageUrl ?? '—', enabled: true),
                 ],
               ),
-              const SizedBox(height: 24),
             ],
 
-            // ── Metadata ───────────────────────────────────────
-            _SectionHeader(label: 'INFO'),
+            const SizedBox(height: 24),
+            _SectionHeader(label: l10n.sectionInfo),
             const SizedBox(height: 12),
             _InfoCard(
               children: [
-                _DetailRow(
-                  icon: FontAwesomeIcons.hashtag,
-                  label: 'Zone ID',
-                  value: '#${zone.id}',
-                ),
-                _DetailRow(
-                  icon: FontAwesomeIcons.tractor,
-                  label: 'Farm ID',
-                  value: '#${zone.farmId}',
-                ),
+                _DetailRow(icon: FontAwesomeIcons.hashtag, label: l10n.zoneId, value: '#${zone.id}'),
+                _DetailRow(icon: FontAwesomeIcons.tractor, label: l10n.farmId, value: '#${zone.farmId}'),
               ],
             ),
 
             const SizedBox(height: 32),
-
-            // ── Botón guardar ──────────────────────────────────
             if (_isEditing)
               SizedBox(
                 width: double.infinity,
@@ -306,33 +252,31 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
                   onPressed: _isSaving ? null : _saveChanges,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.greenEmerald,
-                    disabledBackgroundColor:
-                    AppColors.greenEmerald.withOpacity(0.5),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _isSaving
-                      ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.white),
-                  )
-                      : const Text(
-                    'Save changes',
-                    style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700),
-                  ),
+                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+                      : Text(l10n.saveChanges, style: const TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
-
             const SizedBox(height: 32),
           ],
         ),
       ),
     );
+  }
+
+  // Helper para traducir las fases dinámicamente
+  String _getPhaseLabel(ZonePhase phase, AppLocalizations l10n) {
+    return switch (phase) {
+      ZonePhase.seed => l10n.phaseSeed,
+      ZonePhase.germination => l10n.phaseGermination,
+      ZonePhase.vegetative => l10n.phaseVegetative,
+      ZonePhase.flowering => l10n.phaseFlowering,
+      ZonePhase.fruiting => l10n.phaseFruiting,
+      ZonePhase.harvest => l10n.phaseHarvest,
+      _ => l10n.phaseUnknown,
+    };
   }
 
   Color _phaseColor(ZonePhase phase) => switch (phase) {

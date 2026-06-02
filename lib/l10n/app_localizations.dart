@@ -727,6 +727,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get phaseUnknown;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveChanges;
+
+  /// No description provided for @since.
+  ///
+  /// In en, this message translates to:
+  /// **'Since'**
+  String get since;
+
+  /// No description provided for @days.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get days;
+
+  /// No description provided for @zoneUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone updated'**
+  String get zoneUpdated;
+
+  /// No description provided for @zoneUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update zone'**
+  String get zoneUpdateFailed;
+
+  /// No description provided for @sectionPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'PHASE'**
+  String get sectionPhase;
+
+  /// No description provided for @sectionCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'CROP'**
+  String get sectionCrop;
+
+  /// No description provided for @sectionLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCATION'**
+  String get sectionLocation;
+
+  /// No description provided for @sectionImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'IMAGE URL'**
+  String get sectionImageUrl;
+
+  /// No description provided for @sectionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'INFO'**
+  String get sectionInfo;
+
+  /// No description provided for @commonName.
+  ///
+  /// In en, this message translates to:
+  /// **'Common name'**
+  String get commonName;
+
+  /// No description provided for @scientificName.
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific name'**
+  String get scientificName;
+
+  /// No description provided for @optimalTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal temperature'**
+  String get optimalTemp;
+
+  /// No description provided for @optimalHum.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal humidity'**
+  String get optimalHum;
+
+  /// No description provided for @optimalLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal light'**
+  String get optimalLight;
+
+  /// No description provided for @maxStressTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Max stress time'**
+  String get maxStressTime;
+
+  /// No description provided for @imageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get imageUrl;
+
+  /// No description provided for @zoneId.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone ID'**
+  String get zoneId;
+
+  /// No description provided for @farmId.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm ID'**
+  String get farmId;
+
+  /// No description provided for @longitudee.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get longitudee;
+
+  /// No description provided for @latitudee.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get latitudee;
 }
 
 class _AppLocalizationsDelegate

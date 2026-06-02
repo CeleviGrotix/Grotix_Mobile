@@ -356,7 +356,7 @@ class _SectionHeader extends StatelessWidget {
       label,
       style: const TextStyle(
         color: Colors.redAccent,
-        fontSize: 15,
+        fontSize: 18,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.2,
       ),
