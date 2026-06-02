@@ -29,10 +29,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    // Selecciona la primera zona automáticamente al cargar la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().selectFirstZoneIfNeeded();
-    });
   }
 
   @override

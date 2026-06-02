@@ -17,14 +17,13 @@ class ZoneDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // EL l10n DEBE IR AQUÍ, dentro del build
     final l10n = AppLocalizations.of(context)!;
 
     if (zones.isEmpty) {
       return Text(
-        l10n.noZonesFound, // Usando l10n corregido
+        l10n.noZonesFound,
         style: const TextStyle(
-            color: AppColors.white, fontSize: 24, fontWeight: FontWeight.bold),
+            color: AppColors.white, fontSize: 32, fontWeight: FontWeight.bold),
       );
     }
 

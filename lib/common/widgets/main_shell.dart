@@ -3,7 +3,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/common/utils/app_icons.dart';
+import 'package:provider/provider.dart';
 
+import '../../features/identity/profile/presentation/provider/profile_provider.dart';
+import '../../features/supervision/presentation/providers/zone_provider.dart';
 import 'curved_nav_bar.dart';
 
 class MainShell extends StatefulWidget {
@@ -15,6 +18,39 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  ProfileProvider? _profileProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileProvider = context.read<ProfileProvider>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final user = _profileProvider?.user;
+      if (user?.associationId != null) {
+        context.read<ZoneProvider>().loadFromAssociation(user!.associationId!);
+      } else {
+        _profileProvider?.addListener(_onProfileLoaded);
+      }
+    });
+  }
+
+  void _onProfileLoaded() {
+    if (!mounted) return;
+    final user = _profileProvider?.user;
+    if (user?.associationId != null) {
+      context.read<ZoneProvider>().loadFromAssociation(user!.associationId!);
+      _profileProvider?.removeListener(_onProfileLoaded);
+    }
+  }
+
+  @override
+  void dispose() {
+    _profileProvider?.removeListener(_onProfileLoaded); // safe con ?
+    super.dispose();
+  }
+
   int _calculateCurrentIndex(String location) {
     if (location.startsWith('/dashboard')) return 0;
     if (location.startsWith('/ai-processing')) return 1;

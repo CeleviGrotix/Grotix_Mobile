@@ -48,7 +48,14 @@ class DashboardProvider extends ChangeNotifier {
   final ZoneProvider _zoneProvider;
 
   DashboardProvider({required ZoneProvider zoneProvider})
-      : _zoneProvider = zoneProvider;
+      : _zoneProvider = zoneProvider {
+    debugPrint('🔵 [DashboardProvider] created — zones already: ${zoneProvider.zones.length}');
+    _zoneProvider.addListener(_onZonesUpdated);
+    // Si ya hay zonas cuando se crea el provider, selecciona inmediatamente
+    if (_zoneProvider.zones.isNotEmpty) {
+      selectZone(_zoneProvider.zones.first);
+    }
+  }
 
   Zone? _selectedZone;
   MockTelemetry? _telemetry;
@@ -58,6 +65,19 @@ class DashboardProvider extends ChangeNotifier {
   MockTelemetry? get telemetry => _telemetry;
   bool get isLoadingTelemetry => _isLoadingTelemetry;
   List<Zone> get availableZones => _zoneProvider.zones;
+
+  void _onZonesUpdated() {
+    debugPrint('🔵 [Dashboard] _onZonesUpdated — zones: ${_zoneProvider.zones.length}, selected: $_selectedZone');
+    if (_selectedZone == null && _zoneProvider.zones.isNotEmpty) {
+      selectZone(_zoneProvider.zones.first);
+    }
+  }
+
+  @override
+  void dispose() {
+    _zoneProvider.removeListener(_onZonesUpdated);
+    super.dispose();
+  }
 
   /// Selecciona zona y genera telemetría mock según los parámetros óptimos del crop
   Future<void> selectZone(Zone zone) async {
@@ -75,6 +95,7 @@ class DashboardProvider extends ChangeNotifier {
 
   /// Selecciona la primera zona disponible automáticamente
   void selectFirstZoneIfNeeded() {
+    debugPrint('🔵 [Dashboard] selectFirstZoneIfNeeded — zones: ${_zoneProvider.zones.length}');
     if (_selectedZone == null && availableZones.isNotEmpty) {
       selectZone(availableZones.first);
     }
@@ -116,25 +137,28 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   List<MockSensorReading> _generateMockSensors(int zoneId, DateTime now) {
-    // Genera sensores mock deterministas basados en el zoneId
-    final base = zoneId * 100;
+    String mockId(int seed) {
+      // padLeft garantiza mínimo 6 caracteres antes del substring
+      return '#${seed.toRadixString(16).toUpperCase().padLeft(6, '0')}';
+    }
+
     return [
       MockSensorReading(
-        id: '#${(base + 0xF32A1).toRadixString(16).toUpperCase().substring(0, 6)}',
+        id: mockId(zoneId * 1000 + 1),
         value: 72.5,
         unit: '%',
         type: 'SOIL_MOISTURE',
         lastSeen: now.subtract(const Duration(minutes: 5)),
       ),
       MockSensorReading(
-        id: '#${(base + 0xA922B4).toRadixString(16).toUpperCase().substring(0, 6)}',
+        id: mockId(zoneId * 1000 + 2),
         value: 21.8,
         unit: '°C',
         type: 'TEMPERATURE',
         lastSeen: now.subtract(const Duration(minutes: 12)),
       ),
       MockSensorReading(
-        id: '#${(base + 0xB110C2).toRadixString(16).toUpperCase().substring(0, 6)}',
+        id: mockId(zoneId * 1000 + 3),
         value: 780.0,
         unit: 'lux',
         type: 'LIGHT',
