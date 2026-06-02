@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/dashboard_provider.dart';
 
 class MainTabView extends StatelessWidget {
   final AppLocalizations l10n;
@@ -10,10 +14,26 @@ class MainTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dashboard = context.watch<DashboardProvider>();
+    final zone = dashboard.selectedZone;
+    final telemetry = dashboard.telemetry;
+    final crop = zone?.crop;
+
+    if (dashboard.isLoadingTelemetry || telemetry == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 60),
+          child: CircularProgressIndicator(color: AppColors.greenEmerald),
+        ),
+      );
+    }
+
+    final timeStr = DateFormat('HH:mm').format(telemetry.updatedAt);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Card Info Cultivo
+        // ── Card info cultivo ───────────────────────────────
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -24,11 +44,15 @@ class MainTabView extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Container(
+                child: zone?.imageUrl != null
+                    ? Image.network(zone!.imageUrl!,
+                    width: 100, height: 100, fit: BoxFit.cover)
+                    : Container(
                   width: 100,
                   height: 100,
                   color: Colors.white10,
-                  child: const Icon(Icons.broken_image_outlined, color: Colors.white30),
+                  child: const Icon(Icons.grass,
+                      color: Colors.white30, size: 40),
                 ),
               ),
               const SizedBox(width: 14),
@@ -36,118 +60,217 @@ class MainTabView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Tomate',
-                      style: TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    Text(
+                      crop?.commonName ?? zone?.displayName ?? '—',
+                      style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
-                    Text(l10n.germinationStage('Seed'), style: const TextStyle(color: Colors.white70, fontSize: 15)),
-                    Text(l10n.latitude('58° 22\' 16\" O'), style: const TextStyle(color: Colors.white70, fontSize: 15)),
-                    Text(l10n.longitude('34° 36\' 30\" S'), style: const TextStyle(color: Colors.white70, fontSize: 15)),
+                    Text(
+                      l10n.germinationStage(zone?.phase.label ?? '—'),
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 14),
+                    ),
+                    if (zone?.latitude != null)
+                      Text(
+                        l10n.latitude(_formatCoord(zone!.latitude!)),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14),
+                      ),
+                    if (zone?.longitude != null)
+                      Text(
+                        l10n.longitude(_formatCoord(zone!.longitude!)),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14),
+                      ),
+                    if (crop != null)
+                      Text(
+                        crop.scientificName,
+                        style: TextStyle(
+                          color: AppColors.white.withOpacity(0.4),
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
         const SizedBox(height: 20),
 
-        // Humedad
+        // ── Humedad ─────────────────────────────────────────
         _buildSectionTitle(l10n.moisture),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.darkCardBg, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: AppColors.darkCardBg,
+              borderRadius: BorderRadius.circular(12)),
           child: Row(
             children: [
               Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 64,
+                    height: 64,
                     child: CircularProgressIndicator(
-                      value: 0.75,
+                      value: telemetry.moisture,
                       strokeWidth: 8,
-                      color: AppColors.greenEmerald,
-                      backgroundColor: AppColors.redCoral.withOpacity(0.3),
+                      color: _statusColor(telemetry.moistureStatus),
+                      backgroundColor:
+                      _statusColor(telemetry.moistureStatus).withOpacity(0.2),
                     ),
                   ),
-                  const Text('75%', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold)),
+                  Text(
+                    '${(telemetry.moisture * 100).round()}%',
+                    style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13),
+                  ),
                 ],
               ),
               const SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.optimal, style: const TextStyle(color: AppColors.greenEmerald, fontSize: 18, fontWeight: FontWeight.w600)),
-                  const Text('Last update 10:58', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                  Text(
+                    telemetry.moistureStatus,
+                    style: TextStyle(
+                        color: _statusColor(telemetry.moistureStatus),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    l10n.lastUpdate(timeStr),
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  ),
+                  if (crop != null)
+                    Text(
+                      'Optimal: ${crop.optimalHumidity.round()}%',
+                      style: TextStyle(
+                          color: AppColors.white.withOpacity(0.4),
+                          fontSize: 12),
+                    ),
                 ],
-              )
+              ),
             ],
           ),
         ),
         const SizedBox(height: 20),
 
-        // Radiación
+        // ── Radiación ────────────────────────────────────────
         _buildSectionTitle(l10n.lightRadiation),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.darkCardBg, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: AppColors.darkCardBg,
+              borderRadius: BorderRadius.circular(12)),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.average, style: const TextStyle(color: AppColors.redCoral, fontSize: 16, fontWeight: FontWeight.bold)),
-              const Text('Last update 10:58', style: TextStyle(color: Colors.white38, fontSize: 11)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    telemetry.lightStatus,
+                    style: TextStyle(
+                        color: _statusColor(telemetry.lightStatus),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    l10n.lastUpdate(timeStr),
+                    style: const TextStyle(
+                        color: Colors.white38, fontSize: 11),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('0%', style: TextStyle(color: AppColors.white, fontSize: 12)),
+                  const Text('0%',
+                      style: TextStyle(color: AppColors.white, fontSize: 12)),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: 0.45,
+                          value: telemetry.lightRadiation,
                           minHeight: 14,
-                          color: AppColors.redCoral,
+                          color: _statusColor(telemetry.lightStatus),
                           backgroundColor: Colors.white10,
                         ),
                       ),
                     ),
                   ),
-                  const Text('100%', style: TextStyle(color: AppColors.white, fontSize: 12)),
+                  const Text('100%',
+                      style: TextStyle(color: AppColors.white, fontSize: 12)),
                 ],
-              )
+              ),
+              if (crop != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Optimal: ${crop.optimalLight.round()} lux',
+                    style: TextStyle(
+                        color: AppColors.white.withOpacity(0.4),
+                        fontSize: 12),
+                  ),
+                ),
             ],
           ),
         ),
         const SizedBox(height: 20),
 
-        // Temperatura
+        // ── Temperatura ──────────────────────────────────────
         _buildSectionTitle(l10n.temperature),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.darkCardBg, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: AppColors.darkCardBg,
+              borderRadius: BorderRadius.circular(12)),
           child: Row(
             children: [
-              const FaIcon(FontAwesomeIcons.temperatureHalf, color: AppColors.white, size: 24),
+              const FaIcon(FontAwesomeIcons.temperatureHalf,
+                  color: AppColors.white, size: 24),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('22° ${l10n.optimal}', style: const TextStyle(color: AppColors.greenEmerald, fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Text('Last update 10:58', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                  Text(
+                    '${telemetry.temperature.toStringAsFixed(1)}°C — ${telemetry.temperatureStatus}',
+                    style: TextStyle(
+                        color: _statusColor(telemetry.temperatureStatus),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    l10n.lastUpdate(timeStr),
+                    style: const TextStyle(
+                        color: Colors.white38, fontSize: 12),
+                  ),
+                  if (crop != null)
+                    Text(
+                      'Optimal: ${crop.optimalTemperature.round()}°C',
+                      style: TextStyle(
+                          color: AppColors.white.withOpacity(0.4),
+                          fontSize: 12),
+                    ),
                 ],
-              )
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-
-        // Sensores
         const SizedBox(height: 24),
-        _buildSectionTitle(l10n.sensors),
 
+        // ── Sensores ─────────────────────────────────────────
+        _buildSectionTitle(l10n.sensors),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -157,33 +280,33 @@ class MainTabView extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // COLUMNA IZQUIERDA: Listado de sensores
+              // Lista de sensores
               Expanded(
                 flex: 4,
                 child: Column(
-                  children: [
-                    _SensorListItem(
-                      '#HF32A1',
-                      l10n.microcontroller,
-                      '05/05/2026 19:48',
-                    ),
-                    const Divider(color: Colors.white10, height: 20),
-                    _SensorListItem(
-                      '#A922B4',
-                      l10n.microcontroller,
-                      '12/05/2026 08:20',
-                    ),
-                    const Divider(color: Colors.white10, height: 20),
-                    _SensorListItem(
-                      '#B110C2',
-                      l10n.microcontroller,
-                      '20/05/2026 14:15',
-                    ),
-                  ],
+                  children: telemetry.sensors
+                      .asMap()
+                      .entries
+                      .map((entry) => Column(
+                    children: [
+                      if (entry.key > 0)
+                        const Divider(
+                            color: Colors.white10, height: 20),
+                      _SensorListItem(
+                        id: entry.value.id,
+                        subtitle:
+                        '${entry.value.type} · ${entry.value.value} ${entry.value.unit}',
+                        update: DateFormat('dd/MM/yyyy HH:mm')
+                            .format(entry.value.lastSeen),
+                        l10n: l10n,
+                      ),
+                    ],
+                  ))
+                      .toList(),
                 ),
               ),
 
-              // Divisor vertical sutil
+              // Divisor
               Container(
                 height: 200,
                 width: 1,
@@ -191,78 +314,156 @@ class MainTabView extends StatelessWidget {
                 color: Colors.white10,
               ),
 
-              // COLUMNA DERECHA: Formulario para añadir
+              // Formulario añadir sensor
               Expanded(
                 flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.addSensor,
-                      style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _SensorField('# ID', false),
-                    const SizedBox(height: 8),
-                    _SensorField('SSID red', false),
-                    const SizedBox(height: 8),
-                    _SensorField(l10n.password, true),
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.greenEmerald,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                        ),
-                        child: const Text(
-                            'ADD',
-                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _AddSensorForm(l10n: l10n),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 30), // Espacio final
+        const SizedBox(height: 30),
       ],
     );
   }
+
+  String _formatCoord(double value) => value.toStringAsFixed(4);
 
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(color: AppColors.blueCerulean, fontSize: 22, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+            color: AppColors.blueCerulean,
+            fontSize: 20,
+            fontWeight: FontWeight.w600),
       ),
     );
   }
 
-  Widget _SensorListItem(String id, String subtitle, String update){
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(id, style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-          Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-          const SizedBox(height: 2),
-          Text(
-              l10n.lastUpdate(update),
-              style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        ],
-      );
+  Color _statusColor(String status) => switch (status.toLowerCase()) {
+    'optimal' => AppColors.greenEmerald,
+    'average' => Colors.orange,
+    _ => Colors.redAccent,
+  };
+}
+
+// ─── Widgets privados ─────────────────────────────────────────────────────────
+
+class _SensorListItem extends StatelessWidget {
+  final String id;
+  final String subtitle;
+  final String update;
+  final AppLocalizations l10n;
+
+  const _SensorListItem({
+    required this.id,
+    required this.subtitle,
+    required this.update,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(id,
+            style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14)),
+        Text(subtitle,
+            style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        const SizedBox(height: 2),
+        Text(l10n.lastUpdate(update),
+            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      ],
+    );
+  }
+}
+
+class _AddSensorForm extends StatefulWidget {
+  final AppLocalizations l10n;
+  const _AddSensorForm({required this.l10n});
+
+  @override
+  State<_AddSensorForm> createState() => _AddSensorFormState();
+}
+
+class _AddSensorFormState extends State<_AddSensorForm> {
+  final _idController = TextEditingController();
+  final _ssidController = TextEditingController();
+  final _passController = TextEditingController();
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _ssidController.dispose();
+    _passController.dispose();
+    super.dispose();
   }
 
-  Widget _SensorField(String hint, bool isPassword){
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.l10n.addSensor,
+          style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        _SensorField(hint: '# ID', controller: _idController),
+        const SizedBox(height: 8),
+        _SensorField(hint: 'SSID', controller: _ssidController),
+        const SizedBox(height: 8),
+        _SensorField(
+            hint: widget.l10n.password,
+            controller: _passController,
+            isPassword: true),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton(
+            onPressed: () {
+              // TODO: conectar con hardware datasource
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.greenEmerald,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6)),
+            ),
+            child: const Text('ADD',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SensorField extends StatelessWidget {
+  final String hint;
+  final TextEditingController controller;
+  final bool isPassword;
+
+  const _SensorField({
+    required this.hint,
+    required this.controller,
+    this.isPassword = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       height: 35,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -272,11 +473,13 @@ class MainTabView extends StatelessWidget {
         border: Border.all(color: Colors.white10),
       ),
       child: TextField(
+        controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(color: AppColors.white, fontSize: 15),
+        style: const TextStyle(color: AppColors.white, fontSize: 14),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white24, fontSize: 15),
+          hintStyle:
+          const TextStyle(color: Colors.white24, fontSize: 14),
           border: InputBorder.none,
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 8),

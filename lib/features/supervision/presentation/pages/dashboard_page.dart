@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../../common/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:grotix/features/supervision/presentation/widgets/zone_dropdown.dart';
 import 'package:grotix/l10n/app_localizations.dart';
-
+import 'package:grotix/common/theme/app_colors.dart';
+import '../providers/dashboard_provider.dart';
 import '../widgets/main_tab_view.dart';
-import '../widgets/people_tab_view.dart' show PeopleTabView;
+import '../widgets/people_tab_view.dart';
 import '../widgets/settings_tab_view.dart';
 import '../widgets/tab_button.dart';
-
 
 enum DashboardTab { main, settings, people }
 
@@ -20,14 +21,24 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   DashboardTab _activeTab = DashboardTab.main;
 
-  // Estados locales fake para desarrollo
+  // Estados locales para simulación de configuración
   bool _allowAuto = true;
   bool _manualIrrigation = false;
   String _maxTime = '30 min';
 
   @override
+  void initState() {
+    super.initState();
+    // Selecciona la primera zona automáticamente al cargar la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DashboardProvider>().selectFirstZoneIfNeeded();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final dashboardProvider = context.watch<DashboardProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.black,
@@ -37,18 +48,13 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             const SizedBox(height: 16),
 
-            // Header: Dropdown de Zona
+            // Header: Dropdown de Zona conectado al Provider
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  const Text(
-                    'Zona Tomatitos',
-                    style: TextStyle(color: AppColors.white, fontSize: 30, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.arrow_drop_down, color: AppColors.greenEmerald, size: 30),
-                ],
+              child: ZoneDropdown(
+                selectedZone: dashboardProvider.selectedZone,
+                zones: dashboardProvider.availableZones,
+                onChanged: (zone) => dashboardProvider.selectZone(zone),
               ),
             ),
             const SizedBox(height: 16),
@@ -80,9 +86,11 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 20),
 
-            // Contenedor Scrollable del renderizado dinámico
+            // Contenedor del renderizado dinámico
             Expanded(
-              child: SingleChildScrollView(
+              child: dashboardProvider.isLoadingTelemetry
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.greenEmerald))
+                  : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: switch (_activeTab) {
                   DashboardTab.main => MainTabView(l10n: l10n),

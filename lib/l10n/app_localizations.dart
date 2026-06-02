@@ -853,6 +853,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Latitude'**
   String get latitudee;
+
+  /// No description provided for @selectZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Select zone'**
+  String get selectZone;
 }
 
 class _AppLocalizationsDelegate

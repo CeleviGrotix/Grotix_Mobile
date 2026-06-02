@@ -146,5 +146,6 @@
   "zoneId": "ID de Zona",
   "farmId": "ID de Granja",
   "longitudee": "Longitud",
-  "latitudee": "Latitud"
+  "latitudee": "Latitud",
+  "selectZone": "Selecciona zona"
 }

@@ -400,4 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get latitudee => 'Latitude';
+
+  @override
+  String get selectZone => 'Select zone';
 }

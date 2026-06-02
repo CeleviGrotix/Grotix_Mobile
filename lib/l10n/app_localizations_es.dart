@@ -402,4 +402,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get latitudee => 'Latitud';
+
+  @override
+  String get selectZone => 'Selecciona zona';
 }

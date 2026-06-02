@@ -22,6 +22,7 @@ import 'features/supervision/infrastructure/datasource/zone_datasource.dart';
 import 'features/supervision/infrastructure/repositories/crop_repository_impl.dart';
 import 'features/supervision/infrastructure/repositories/farm_repository_impl.dart';
 import 'features/supervision/infrastructure/repositories/zone_repository_impl.dart';
+import 'features/supervision/presentation/providers/dashboard_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
@@ -57,6 +58,13 @@ class _MyAppState extends State<MyApp> {
             farmService: FarmService(FarmRepositoryImpl(FarmRemoteDatasource())),
             cropService: CropService(CropRepositoryImpl(CropRemoteDatasource())),
           ),
+        ),
+        ChangeNotifierProxyProvider<ZoneProvider, DashboardProvider>(
+          create: (context) => DashboardProvider(
+            zoneProvider: context.read<ZoneProvider>(),
+          ),
+          update: (context, zoneProvider, previousDashboard) =>
+          previousDashboard ?? DashboardProvider(zoneProvider: zoneProvider),
         ),
       ],
       child: Consumer2<LocaleProvider, AuthProvider>(
