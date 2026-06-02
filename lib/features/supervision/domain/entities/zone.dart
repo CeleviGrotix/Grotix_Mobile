@@ -1,4 +1,4 @@
-import '../entities/crop.dart';
+import 'crop.dart';
 
 enum ZonePhase {
   seed,
@@ -36,6 +36,7 @@ class Zone {
   final int id;
   final int farmId;
   final int cropId;
+  final String? name;
   final String currentPhase;
   final DateTime? phaseStartDate;
   final String? imageUrl;
@@ -49,6 +50,7 @@ class Zone {
     required this.id,
     required this.farmId,
     required this.cropId,
+    this.name,
     required this.currentPhase,
     this.phaseStartDate,
     this.imageUrl,
@@ -59,9 +61,10 @@ class Zone {
 
   factory Zone.fromMap(Map<String, dynamic> map, {Crop? crop}) {
     return Zone(
-      id: map['id'] as int,
-      farmId: map['farmId'] as int,
-      cropId: map['cropId'] as int,
+      id: (map['id'] as num?)?.toInt() ?? 0,
+      farmId: (map['farmId'] as num?)?.toInt() ?? 0,
+      cropId: (map['cropId'] as num?)?.toInt() ?? 0,
+      name: map['name'] as String?,
       currentPhase: map['currentPhase'] as String? ?? 'UNKNOWN',
       phaseStartDate: map['phaseStartDate'] != null
           ? DateTime.parse(map['phaseStartDate'] as String)
@@ -74,6 +77,7 @@ class Zone {
   }
 
   Map<String, dynamic> toMap() => {
+    'name': name,
     'cropId': cropId,
     'currentPhase': currentPhase,
     'phaseStartDate': phaseStartDate?.toIso8601String(),
@@ -83,6 +87,7 @@ class Zone {
   };
 
   Zone copyWith({
+    String? name,
     int? cropId,
     String? currentPhase,
     DateTime? phaseStartDate,
@@ -95,6 +100,7 @@ class Zone {
       id: id,
       farmId: farmId,
       cropId: cropId ?? this.cropId,
+      name: name ?? this.name,
       currentPhase: currentPhase ?? this.currentPhase,
       phaseStartDate: phaseStartDate ?? this.phaseStartDate,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -108,8 +114,8 @@ class Zone {
 
   ZonePhase get phase => ZonePhase.fromString(currentPhase);
 
-  /// Nombre a mostrar: usa el cultivo si está cargado, sino fallback al id
-  String get displayName => crop?.commonName ?? 'Zone #$id';
+  /// Prioridad: name del backend → commonName del crop → fallback Zone #id
+  String get displayName => name ?? crop?.commonName ?? 'Zone #$id';
 
   /// Días desde que empezó la fase actual
   int? get daysInPhase => phaseStartDate != null

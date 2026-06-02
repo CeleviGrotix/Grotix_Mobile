@@ -13,6 +13,11 @@ class AssociationRepositoryImpl implements AssociationRepository {
   }
 
   @override
+  Future<Association> getMyAssociation() async {
+    return await remoteDataSource.getMyAssociation();
+  }
+
+  @override
   Future<Association> createAssociation({
     required String name,
     required String email,

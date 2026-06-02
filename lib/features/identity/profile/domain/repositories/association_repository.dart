@@ -10,6 +10,9 @@ abstract class AssociationRepository {
     required String email,
   });
 
+  /// Obtiene la asociación del usuario loggeado
+  Future<Association> getMyAssociation();
+
   /// Obtiene el detalle de una asociación específica por su ID.
   Future<Association> getAssociationById(int associationId);
 

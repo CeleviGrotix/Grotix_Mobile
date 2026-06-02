@@ -157,7 +157,7 @@ class _ZonesPageState extends State<ZonesPage> {
 
   void _onZoneTap(Zone zone) {
     // Navegación al detalle usando GoRouter y pasando el ID
-    context.push('/zones/${zone.id}');
+    context.push('/zones/${zone.id}', extra: zone);
   }
 }
 

@@ -1,6 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-
 import '../../features/analytics/presentation/pages/reports_page.dart';
 import '../../features/identity/auth/presentation/pages/login_page.dart';
 import '../../features/identity/auth/presentation/pages/register_page.dart';
@@ -8,7 +6,9 @@ import '../../features/identity/auth/presentation/pages/splash_page.dart';
 import '../../features/identity/auth/presentation/providers/auth_provider.dart';
 import '../../features/identity/profile/presentation/pages/profile_page.dart';
 import '../../features/intelligence/presentation/pages/ai_processing_page.dart';
+import '../../features/supervision/domain/entities/zone.dart';
 import '../../features/supervision/presentation/pages/dashboard_page.dart';
+import '../../features/supervision/presentation/pages/zone_detail_page.dart';
 import '../../features/supervision/presentation/pages/zones_page.dart';
 import '../widgets/main_shell.dart';
 
@@ -73,6 +73,12 @@ GoRouter buildAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: '/zones',
             builder: (_, __) => const ZonesPage(),
+          ),
+          GoRoute(
+            path: '/zones/:id',
+            builder: (context, state) => ZoneDetailPage(
+              zone: state.extra as Zone,
+            ),
           ),
           GoRoute(
             path: '/reports',

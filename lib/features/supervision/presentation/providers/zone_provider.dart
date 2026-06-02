@@ -44,7 +44,6 @@ class ZoneProvider extends ChangeNotifier {
 
   // ── Carga: association → farm → zones ────────────────────────────────────
 
-  /// Punto de entrada principal.
   /// Recibe el associationId del usuario loggeado (viene del ProfileProvider).
   Future<void> loadFromAssociation(int associationId) async {
     _isLoading = true;
@@ -52,26 +51,25 @@ class ZoneProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('🔵 [ZoneProvider] Fetching farms...');
+      // 1. Traer todas las farms y filtrar por associationId
       final allFarms = await _farmService.getAllFarms();
-      debugPrint('🟢 [ZoneProvider] Got ${allFarms.length} farms');
-
       final farm = allFarms.firstWhere(
             (f) => f.associationId == associationId,
         orElse: () => throw Exception('No farm found for this association'),
       );
       _currentFarm = farm;
 
+      // 2. Traer las zonas de esa farm
       final rawZones = await _zoneService.getZonesByFarm(farm.id);
 
+      // 3. Enriquecer con crops para tener displayName correcto
       final cropMap = await _cropService.getCropMap();
-
       _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
+
       _applyFilters();
-    } catch (e, stack) {
+    } catch (e) {
       _errorMessage = e.toString();
-      debugPrint('🔴 [ZoneProvider] Error: $e');
-      debugPrint('🔴 [ZoneProvider] Stack: $stack');  // esto te dice la línea exacta
+      debugPrint('🔴 [ZoneProvider] loadFromAssociation error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -184,12 +182,45 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateZoneFields(
+      int zoneId, {
+        double? latitude,
+        double? longitude,
+        String? imageUrl,
+      }) async {
+    try {
+      final data = <String, dynamic>{
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      };
+      if (data.isEmpty) return true;
+
+      await _zoneService.updateZone(zoneId, data);
+
+      _zones = _zones.map((z) {
+        if (z.id == zoneId) {
+          return z.copyWith(
+            latitude: latitude ?? z.latitude,
+            longitude: longitude ?? z.longitude,
+            imageUrl: imageUrl ?? z.imageUrl,
+          );
+        }
+        return z;
+      }).toList();
+      _applyFilters();
+      return true;
+    } catch (e) {
+      debugPrint('🔴 [ZoneProvider] updateZoneFields error: $e');
+      return false;
+    }
+  }
+
   Future<bool> updateZonePhase(int zoneId, ZonePhase newPhase) async {
     try {
       final updated = await _zoneService.updatePhase(zoneId, newPhase);
       if (updated == null) return false;
 
-      // Actualiza localmente sin recargar todo
       _zones = _zones.map((z) {
         if (z.id == zoneId) {
           return z.copyWith(

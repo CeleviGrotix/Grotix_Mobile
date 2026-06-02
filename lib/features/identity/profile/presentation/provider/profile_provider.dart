@@ -60,7 +60,7 @@ class ProfileProvider extends ChangeNotifier {
 
       // cargamos la asociación
       if (_user?.associationId != null) {
-        await _loadAssociation(_user!.associationId!);
+        await _loadAssociation();
       }
     } catch (e) {
       debugPrint('🔴 [ProfileProvider] loadProfile error: $e');
@@ -71,12 +71,12 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadAssociation(int associationId) async {
+  Future<void> _loadAssociation() async {
     try {
-      _association = await _associationRepository.getAssociationById(associationId);
+      final association = await _associationRepository.getMyAssociation();
+      notifyListeners();
     } catch (e) {
       debugPrint('🔴 [ProfileProvider] loadAssociation error: $e');
-      // No es crítico — el perfil sigue cargando aunque falle la asociación
     }
   }
 

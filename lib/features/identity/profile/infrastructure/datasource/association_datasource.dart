@@ -39,6 +39,20 @@ class AssociationRemoteDatasource {
     throw _error('getAssociations', response);
   }
 
+  Future<Association> getMyAssociation() async {
+    final uri = Uri.parse('$_base$_associationsPath/mine');
+    final headers = await _headers();
+
+    debugPrint('🔵 [ASSOCIATION] GET $uri');
+    final response = await _client.get(uri, headers: headers);
+    debugPrint('🟣 [ASSOCIATION] ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return Association.fromMap(jsonDecode(response.body));
+    }
+    throw _error('getMyAssociation', response);
+  }
+
   // ── POST /associations ──────────────────────────────────────────────────
 
   Future<Association> createAssociation({
