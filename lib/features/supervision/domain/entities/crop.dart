@@ -21,13 +21,13 @@ class Crop {
 
   factory Crop.fromMap(Map<String, dynamic> map) {
     return Crop(
-      id: map['id'] as int,
-      commonName: map['commonName'] as String,
-      scientificName: map['scientificName'] as String,
-      optimalTemperature: (map['optimalTemperature'] as num).toDouble(),
-      optimalHumidity: (map['optimalHumidity'] as num).toDouble(),
-      optimalLight: (map['optimalLight'] as num).toDouble(),
-      maxStressTime: map['maxStressTime'] as int,
+      id: (map['id'] as num?)?.toInt() ?? 0,
+      commonName: map['commonName'] as String? ?? '',
+      scientificName: map['scientificName'] as String? ?? '',
+      optimalTemperature: (map['optimalTemperature'] as num?)?.toDouble() ?? 0.0,
+      optimalHumidity: (map['optimalHumidity'] as num?)?.toDouble() ?? 0.0,
+      optimalLight: (map['optimalLight'] as num?)?.toDouble() ?? 0.0,
+      maxStressTime: (map['maxStressTime'] as num?)?.toInt() ?? 0,
       imageUrl: map['imageUrl'] as String?,
     );
   }

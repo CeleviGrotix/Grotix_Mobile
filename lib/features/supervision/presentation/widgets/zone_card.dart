@@ -124,7 +124,6 @@ class _ZonePhaseBadge extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     // Mapeamos cada fase a su icono y color correspondiente
-    // Usamos el label que ya definiste en tu enum para la traducción
     final (icon, color) = switch (phase) {
       ZonePhase.seed => (FontAwesomeIcons.seedling, Colors.brown),
       ZonePhase.germination => (FontAwesomeIcons.leaf, Colors.lightGreen),

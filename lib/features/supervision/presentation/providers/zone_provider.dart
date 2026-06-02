@@ -52,25 +52,26 @@ class ZoneProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Traer todas las farms y filtrar por associationId
+      debugPrint('🔵 [ZoneProvider] Fetching farms...');
       final allFarms = await _farmService.getAllFarms();
+      debugPrint('🟢 [ZoneProvider] Got ${allFarms.length} farms');
+
       final farm = allFarms.firstWhere(
             (f) => f.associationId == associationId,
         orElse: () => throw Exception('No farm found for this association'),
       );
       _currentFarm = farm;
 
-      // 2. Traer las zonas de esa farm
       final rawZones = await _zoneService.getZonesByFarm(farm.id);
 
-      // 3. Enriquecer con crops para tener displayName correcto
       final cropMap = await _cropService.getCropMap();
-      _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
 
+      _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
       _applyFilters();
-    } catch (e) {
+    } catch (e, stack) {
       _errorMessage = e.toString();
-      debugPrint('🔴 [ZoneProvider] loadFromAssociation error: $e');
+      debugPrint('🔴 [ZoneProvider] Error: $e');
+      debugPrint('🔴 [ZoneProvider] Stack: $stack');  // esto te dice la línea exacta
     } finally {
       _isLoading = false;
       notifyListeners();

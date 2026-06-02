@@ -15,11 +15,11 @@ class Farm {
 
   factory Farm.fromMap(Map<String, dynamic> map) {
     return Farm(
-      id: map['id'] as int,
-      userId: map['userId'] as int?,
-      associationId: map['associationId'] as int,
-      name: map['name'] as String,
-      location: map['location'] as String,
+      id: (map['id'] as num?)?.toInt() ?? 0,
+      userId: (map['userId'] as num?)?.toInt(),
+      associationId: (map['associationId'] as num?)?.toInt() ?? 0,
+      name: map['name'] as String? ?? '',
+      location: map['location'] as String? ?? '',
     );
   }
 
