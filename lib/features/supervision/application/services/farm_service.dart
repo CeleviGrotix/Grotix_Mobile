@@ -21,7 +21,6 @@ class FarmService {
   }
 
   /// Obtiene las zonas asociadas a una granja
-  /// Útil para la navegación Home -> Detalle de Granja
   Future<List<Zone>> getZonesByFarm(int farmId) async {
     try {
       return await _repo.getZonesByFarm(farmId);
@@ -30,13 +29,6 @@ class FarmService {
     }
   }
 
-  /// Lógica de negocio: Calcular el total de hectáreas o áreas de todas las granjas
-  Future<double> getTotalSurface() async {
-    final farms = await getAllFarms();
-    // Asumiendo que Farm tiene un campo 'area' o similar
-    // return farms.fold(0.0, (sum, farm) => sum + (farm.area ?? 0.0));
-    return 0.0; // Implementar según los campos reales de tu entidad Farm
-  }
 
   /// Filtrar granjas por nombre (búsqueda local)
   Future<List<Farm>> searchFarms(String query) async {
@@ -48,4 +40,5 @@ class FarmService {
         .where((f) => f.name.toLowerCase().contains(q))
         .toList();
   }
+
 }

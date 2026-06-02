@@ -9,4 +9,6 @@ abstract class ZoneRepository {
 
   /// Obtiene todas las zonas de una granja específica.
   Future<List<Zone>> getByFarmId(int farmId);
+
+  Future<Zone> create(Map<String, dynamic> data);
 }

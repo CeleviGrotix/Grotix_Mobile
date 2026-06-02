@@ -9,10 +9,18 @@ import 'common/routes/app_router.dart';
 import 'common/theme/app_theme.dart';
 import 'features/identity/auth/auth_injection.dart';
 import 'features/identity/auth/presentation/providers/auth_provider.dart';
+import 'features/identity/profile/infrastructure/datasource/association_datasource.dart';
 import 'features/identity/profile/infrastructure/datasource/profile_remote_datasource.dart';
+import 'features/identity/profile/infrastructure/repositories/association_repository_impl.dart';
 import 'features/identity/profile/infrastructure/repositories/profile_repository_impl.dart';
 import 'features/identity/profile/presentation/provider/profile_provider.dart';
+import 'features/supervision/application/services/crop_service.dart';
+import 'features/supervision/application/services/farm_service.dart';
+import 'features/supervision/infrastructure/datasource/crop_datasource.dart';
+import 'features/supervision/infrastructure/datasource/farm_datasource.dart';
 import 'features/supervision/infrastructure/datasource/zone_datasource.dart';
+import 'features/supervision/infrastructure/repositories/crop_repository_impl.dart';
+import 'features/supervision/infrastructure/repositories/farm_repository_impl.dart';
 import 'features/supervision/infrastructure/repositories/zone_repository_impl.dart';
 import 'l10n/app_localizations.dart';
 
@@ -40,11 +48,14 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(
           create: (_) => ProfileProvider(
             repository: ProfileRepositoryImpl(ProfileRemoteDatasource()),
+            associationRepository: AssociationRepositoryImpl(AssociationRemoteDatasource()),
           )..loadProfile(),
         ),
         ChangeNotifierProvider(
-          create: (context) => ZoneProvider(
-            ZoneService(ZoneRepositoryImpl(ZoneRemoteDatasource())),
+          create: (_) => ZoneProvider(
+            zoneService: ZoneService(ZoneRepositoryImpl(ZoneRemoteDatasource())),
+            farmService: FarmService(FarmRepositoryImpl(FarmRemoteDatasource())),
+            cropService: CropService(CropRepositoryImpl(CropRemoteDatasource())),
           ),
         ),
       ],

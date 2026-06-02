@@ -111,6 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final isEditing = profileProvider.isEditing;
     final roleName = user.isAdmin ? 'Administrator' : 'User';
+    final associationName = context.watch<ProfileProvider>().associationName;
 
     return Scaffold(
       backgroundColor: AppColors.black,
@@ -190,8 +191,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     // Campos editables
                     ProfileInfoField(
                       label: l10n.associationName,
-                      value: user.name, //TODO: CONECTAR A LA ASOCIACION QUE PERTENECE
-                      enabled: isEditing,
+                      value: associationName,
+                      enabled: false,
                       controller: profileProvider.nameController,
                     ),
                     const SizedBox(height: 12),

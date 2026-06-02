@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grotix/l10n/app_localizations.dart'; // Importante
+import 'package:grotix/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../../common/theme/app_colors.dart';
 import '../../../../common/utils/app_icons.dart';
+import '../../../identity/profile/presentation/provider/profile_provider.dart';
 import '../../domain/entities/zone.dart';
 import '../providers/zone_provider.dart';
 import '../widgets/zone_card.dart';
@@ -22,10 +23,11 @@ class _ZonesPageState extends State<ZonesPage> {
   @override
   void initState() {
     super.initState();
-    // Cargamos las zonas al entrar.
-    // TODO: Obtener el farmId actual (ej. de un GlobalProvider o argumento)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ZoneProvider>().loadZones(1);
+      final user = context.read<ProfileProvider>().user;
+      if (user?.associationId != null) {
+        context.read<ZoneProvider>().loadFromAssociation(user!.associationId!);
+      }
     });
   }
 

@@ -6,17 +6,26 @@ import 'package:image_picker/image_picker.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 
 import '../../../../../l10n/app_localizations.dart';
+import '../../domain/entities/association.dart';
 import '../../domain/entities/user_profile.dart';
+import '../../domain/repositories/association_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ProfileRepository _repository;
+  final AssociationRepository _associationRepository;
 
-  ProfileProvider({required ProfileRepository repository})
-      : _repository = repository;
+  ProfileProvider({
+    required ProfileRepository repository,
+    required AssociationRepository associationRepository,
+  })  : _repository = repository,
+        _associationRepository = associationRepository;
 
   // ── Estado ───────────────────────────────────────────────────────────────
 
+  Association? _association;
+  Association? get association => _association;
+  String get associationName => _association?.name ?? '—';
   UserProfile? _user;
   List<Map<String, dynamic>> _notifications = [];
   int _unreadCount = 0;
@@ -48,12 +57,26 @@ class ProfileProvider extends ChangeNotifier {
     try {
       _user = await _repository.getMe();
       _fillControllers();
+
+      // cargamos la asociación
+      if (_user?.associationId != null) {
+        await _loadAssociation(_user!.associationId!);
+      }
     } catch (e) {
       debugPrint('🔴 [ProfileProvider] loadProfile error: $e');
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _loadAssociation(int associationId) async {
+    try {
+      _association = await _associationRepository.getAssociationById(associationId);
+    } catch (e) {
+      debugPrint('🔴 [ProfileProvider] loadAssociation error: $e');
+      // No es crítico — el perfil sigue cargando aunque falle la asociación
     }
   }
 
