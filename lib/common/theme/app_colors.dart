@@ -16,6 +16,7 @@ class AppColors {
 
   // --- Tonos Semitransparentes o de Soporte para Modo Oscuro ---
   static const Color darkCardBg = Color(0xFF121212);     // Fondo para tarjetas contenedoras
+  static const Color darkNotis = Color(0xFF011818);     // Fondo para notificaciones
   static const Color darkNavBarB = Color(0xFF1A5562);   // Tono azul oscuro de la barra
   static const Color darkNavBarG = Color(0xFF084935);   // Tono verdoso oscuro de la barra
   static const Color textSecondary = Color(0xFF8E8E93);  // Gris para subtítulos y placeholders

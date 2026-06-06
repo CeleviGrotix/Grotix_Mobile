@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/common/utils/app_icons.dart';
 import 'package:provider/provider.dart';
-
+import '../../features/connectivity/presentation/pages/notifications_page.dart';
 import '../../features/identity/profile/presentation/provider/profile_provider.dart';
 import '../../features/supervision/presentation/providers/zone_provider.dart';
 import 'curved_nav_bar.dart';
@@ -47,7 +47,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
-    _profileProvider?.removeListener(_onProfileLoaded); // safe con ?
+    _profileProvider?.removeListener(_onProfileLoaded);
     super.dispose();
   }
 
@@ -74,14 +74,10 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
     final int currentIndex = _calculateCurrentIndex(location);
-    final Size size = MediaQuery.of(context).size;
-
-    final double itemWidth = size.width / 5;
-    // Centro X del ítem activo
-    final double indicatorCenterX = (itemWidth * currentIndex) + (itemWidth / 2);
 
     return Scaffold(
       backgroundColor: AppColors.black,
+      endDrawer: const NotificationsDrawer(),
       appBar: AppBar(
         backgroundColor: AppColors.black,
         elevation: 0,
@@ -89,9 +85,11 @@ class _MainShellState extends State<MainShell> {
         centerTitle: true,
         toolbarHeight: 70,
         actions: [
-          IconButton(
-            icon: const FaIcon(AppIcons.notifications, color: AppColors.white, size: 20),
-            onPressed: () => context.push('/notifications'),
+          Builder(
+            builder: (context) => IconButton(
+              icon: const FaIcon(AppIcons.notifications, color: AppColors.white, size: 24),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -116,11 +114,11 @@ class _MainShellState extends State<MainShell> {
         animationDuration: const Duration(milliseconds: 300),
         animationCurve: Curves.easeOutBack,
         items: const [
-          FaIcon(AppIcons.dashboard, color: AppColors.white, size: 22),
-          FaIcon(AppIcons.aiProcessing, color: AppColors.white, size: 22),
-          FaIcon(AppIcons.zones, color: AppColors.white, size: 22),
-          FaIcon(AppIcons.reports, color: AppColors.white, size: 22),
-          FaIcon(AppIcons.profile, color: AppColors.white, size: 22),
+          FaIcon(AppIcons.dashboard, color: AppColors.white, size: 24),
+          FaIcon(AppIcons.aiProcessing, color: AppColors.white, size: 24),
+          FaIcon(AppIcons.zones, color: AppColors.white, size: 24),
+          FaIcon(AppIcons.reports, color: AppColors.white, size: 24),
+          FaIcon(AppIcons.profile, color: AppColors.white, size: 24),
         ],
         onTap: (index) => _onItemTapped(index, context),
       ),

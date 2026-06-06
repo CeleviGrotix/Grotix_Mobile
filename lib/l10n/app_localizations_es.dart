@@ -408,4 +408,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get selectZone => 'Selecciona zona';
+
+  @override
+  String get notificationsTitle => 'Notificaciones';
+
+  @override
+  String get todaySection => 'Hoy';
+
+  @override
+  String get olderSection => 'Anteriores';
+
+  @override
+  String get noNotifications => 'No hay notificaciones disponibles';
+
+  @override
+  String get notifCriticalTitle => 'Caída Crítica de Humedad';
+
+  @override
+  String notifCriticalDesc(String zone) {
+    return 'Los niveles de humedad en la $zone han caído drásticamente por debajo del umbral seguro.';
+  }
+
+  @override
+  String get notifWarningTitle => 'Advertencia de Estrés Alto';
+
+  @override
+  String notifWarningDesc(String zone) {
+    return 'Los cultivos en la $zone se acercan al tiempo máximo de estrés por variaciones de radiación.';
+  }
+
+  @override
+  String get notifInfoTitle => 'Ciclo de Riego Finalizado';
+
+  @override
+  String notifInfoDesc(String farm) {
+    return 'El cronograma automatizado se completó con éxito en los sectores de $farm.';
+  }
 }

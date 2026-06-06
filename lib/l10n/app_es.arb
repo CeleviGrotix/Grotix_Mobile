@@ -148,5 +148,30 @@
   "farmId": "ID de Granja",
   "longitudee": "Longitud",
   "latitudee": "Latitud",
-  "selectZone": "Selecciona zona"
+  "selectZone": "Selecciona zona",
+  "notificationsTitle": "Notificaciones",
+  "todaySection": "Hoy",
+  "olderSection": "Anteriores",
+  "noNotifications": "No hay notificaciones disponibles",
+  "notifCriticalTitle": "Caída Crítica de Humedad",
+  "notifCriticalDesc": "Los niveles de humedad en la {zone} han caído drásticamente por debajo del umbral seguro.",
+  "@notifCriticalDesc": {
+    "placeholders": {
+      "zone": { "type": "String" }
+    }
+  },
+  "notifWarningTitle": "Advertencia de Estrés Alto",
+  "notifWarningDesc": "Los cultivos en la {zone} se acercan al tiempo máximo de estrés por variaciones de radiación.",
+  "@notifWarningDesc": {
+    "placeholders": {
+      "zone": { "type": "String" }
+    }
+  },
+  "notifInfoTitle": "Ciclo de Riego Finalizado",
+  "notifInfoDesc": "El cronograma automatizado se completó con éxito en los sectores de {farm}.",
+  "@notifInfoDesc": {
+    "placeholders": {
+      "farm": { "type": "String" }
+    }
+  }
 }

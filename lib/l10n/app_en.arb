@@ -148,5 +148,30 @@
   "farmId": "Farm ID",
   "longitudee": "Longitude",
   "latitudee": "Latitude",
-  "selectZone": "Select zone"
+  "selectZone": "Select zone",
+  "notificationsTitle": "Notifications",
+  "todaySection": "Today",
+  "olderSection": "Older",
+  "noNotifications": "No notifications available",
+  "notifCriticalTitle": "Critical Moisture Drop",
+  "notifCriticalDesc": "The substrate humidity levels in {zone} have dropped dramatically below the safe threshold.",
+  "@notifCriticalDesc": {
+    "placeholders": {
+      "zone": { "type": "String" }
+    }
+  },
+  "notifWarningTitle": "High Stress Warning",
+  "notifWarningDesc": "Plants in {zone} are approaching maximum stress time due to radiation variance.",
+  "@notifWarningDesc": {
+    "placeholders": {
+      "zone": { "type": "String" }
+    }
+  },
+  "notifInfoTitle": "Irrigation Cycle Finished",
+  "notifInfoDesc": "Automated schedule completed successfully across sector grids in {farm}.",
+  "@notifInfoDesc": {
+    "placeholders": {
+      "farm": { "type": "String" }
+    }
+  }
 }

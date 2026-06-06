@@ -865,6 +865,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select zone'**
   String get selectZone;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @todaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todaySection;
+
+  /// No description provided for @olderSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Older'**
+  String get olderSection;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications available'**
+  String get noNotifications;
+
+  /// No description provided for @notifCriticalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical Moisture Drop'**
+  String get notifCriticalTitle;
+
+  /// No description provided for @notifCriticalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The substrate humidity levels in {zone} have dropped dramatically below the safe threshold.'**
+  String notifCriticalDesc(String zone);
+
+  /// No description provided for @notifWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'High Stress Warning'**
+  String get notifWarningTitle;
+
+  /// No description provided for @notifWarningDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Plants in {zone} are approaching maximum stress time due to radiation variance.'**
+  String notifWarningDesc(String zone);
+
+  /// No description provided for @notifInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Irrigation Cycle Finished'**
+  String get notifInfoTitle;
+
+  /// No description provided for @notifInfoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automated schedule completed successfully across sector grids in {farm}.'**
+  String notifInfoDesc(String farm);
 }
 
 class _AppLocalizationsDelegate
