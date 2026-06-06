@@ -102,8 +102,8 @@ class MainTabView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // ── Humedad ─────────────────────────────────────────
-        _buildSectionTitle(l10n.moisture),
+        // ── Humedad Aire ─────────────────────────────────────────
+        _buildSectionTitle(l10n.moistureAir),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -118,15 +118,15 @@ class MainTabView extends StatelessWidget {
                     width: 64,
                     height: 64,
                     child: CircularProgressIndicator(
-                      value: telemetry.moisture,
+                      value: telemetry.moistureAir,
                       strokeWidth: 8,
-                      color: _statusColor(telemetry.moistureStatus),
+                      color: _statusColor(telemetry.moistureAirStatus),
                       backgroundColor:
-                      _statusColor(telemetry.moistureStatus).withOpacity(0.2),
+                      _statusColor(telemetry.moistureAirStatus).withOpacity(0.2),
                     ),
                   ),
                   Text(
-                    '${(telemetry.moisture * 100).round()}%',
+                    '${(telemetry.moistureAir * 100).round()}%',
                     style: const TextStyle(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
@@ -139,9 +139,9 @@ class MainTabView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    telemetry.moistureStatus,
+                    telemetry.moistureAirStatus,
                     style: TextStyle(
-                        color: _statusColor(telemetry.moistureStatus),
+                        color: _statusColor(telemetry.moistureAirStatus),
                         fontSize: 18,
                         fontWeight: FontWeight.w600),
                   ),
@@ -151,7 +151,68 @@ class MainTabView extends StatelessWidget {
                   ),
                   if (crop != null)
                     Text(
-                      'Optimal: ${crop.optimalHumidity.round()}%',
+                      '${l10n.optimal}: ${crop.optimalHumidityAir.round()}%',
+                      style: TextStyle(
+                          color: AppColors.white.withOpacity(0.4),
+                          fontSize: 12),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // ── Humedad Soil ─────────────────────────────────────────
+        _buildSectionTitle(l10n.moistureSoil),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+              color: AppColors.darkCardBg,
+              borderRadius: BorderRadius.circular(12)),
+          child: Row(
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: CircularProgressIndicator(
+                      value: telemetry.moistureSoil,
+                      strokeWidth: 8,
+                      color: _statusColor(telemetry.moistureSoilStatus),
+                      backgroundColor:
+                      _statusColor(telemetry.moistureSoilStatus).withOpacity(0.2),
+                    ),
+                  ),
+                  Text(
+                    '${(telemetry.moistureSoil * 100).round()}%',
+                    style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    telemetry.moistureSoilStatus,
+                    style: TextStyle(
+                        color: _statusColor(telemetry.moistureSoilStatus),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    l10n.lastUpdate(timeStr),
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  ),
+                  if (crop != null)
+                    Text(
+                      '${l10n.optimal}: ${crop.optimalHumiditySoil.round()}%',
                       style: TextStyle(
                           color: AppColors.white.withOpacity(0.4),
                           fontSize: 12),
@@ -217,7 +278,7 @@ class MainTabView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    'Optimal: ${crop.optimalLight.round()} lux',
+                    '${l10n.optimal}: ${crop.optimalLight.round()} lux',
                     style: TextStyle(
                         color: AppColors.white.withOpacity(0.4),
                         fontSize: 12),
@@ -257,7 +318,7 @@ class MainTabView extends StatelessWidget {
                   ),
                   if (crop != null)
                     Text(
-                      'Optimal: ${crop.optimalTemperature.round()}°C',
+                      '${l10n.optimal}: ${crop.optimalTemperature.round()}°C',
                       style: TextStyle(
                           color: AppColors.white.withOpacity(0.4),
                           fontSize: 12),

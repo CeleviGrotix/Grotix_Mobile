@@ -416,11 +416,17 @@ abstract class AppLocalizations {
   /// **'Longitude: {lng}'**
   String longitude(Object lng);
 
-  /// No description provided for @moisture.
+  /// No description provided for @moistureAir.
   ///
   /// In en, this message translates to:
-  /// **'Moisture'**
-  String get moisture;
+  /// **'Air Moisture'**
+  String get moistureAir;
+
+  /// No description provided for @moistureSoil.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil Moisture'**
+  String get moistureSoil;
 
   /// No description provided for @lightRadiation.
   ///

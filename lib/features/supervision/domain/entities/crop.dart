@@ -3,7 +3,8 @@ class Crop {
   final String commonName;
   final String scientificName;
   final double optimalTemperature;
-  final double optimalHumidity;
+  final double optimalHumidityAir;
+  final double optimalHumiditySoil;
   final double optimalLight;
   final int maxStressTime; // en minutos según backend
   final String? imageUrl;
@@ -13,7 +14,8 @@ class Crop {
     required this.commonName,
     required this.scientificName,
     required this.optimalTemperature,
-    required this.optimalHumidity,
+    required this.optimalHumidityAir,
+    required this.optimalHumiditySoil,
     required this.optimalLight,
     required this.maxStressTime,
     this.imageUrl,
@@ -25,7 +27,8 @@ class Crop {
       commonName: map['commonName'] as String? ?? '',
       scientificName: map['scientificName'] as String? ?? '',
       optimalTemperature: (map['optimalTemperature'] as num?)?.toDouble() ?? 0.0,
-      optimalHumidity: (map['optimalHumidity'] as num?)?.toDouble() ?? 0.0,
+      optimalHumidityAir: (map['optimalHumidityAir'] as num?)?.toDouble() ?? 0.0,
+      optimalHumiditySoil: (map['optimalHumiditySoil'] as num?)?.toDouble() ?? 0.0,
       optimalLight: (map['optimalLight'] as num?)?.toDouble() ?? 0.0,
       maxStressTime: (map['maxStressTime'] as num?)?.toInt() ?? 0,
       imageUrl: map['imageUrl'] as String?,
@@ -36,7 +39,8 @@ class Crop {
     'commonName': commonName,
     'scientificName': scientificName,
     'optimalTemperature': optimalTemperature,
-    'optimalHumidity': optimalHumidity,
+    'optimalHumidityAir': optimalHumidityAir,
+    'optimalHumiditySoil': optimalHumiditySoil,
     'optimalLight': optimalLight,
     'maxStressTime': maxStressTime,
     'imageUrl': imageUrl,

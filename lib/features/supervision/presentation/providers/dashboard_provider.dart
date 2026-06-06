@@ -21,20 +21,24 @@ class MockSensorReading {
 }
 
 class MockTelemetry {
-  final double moisture;       // 0.0 - 1.0
+  final double moistureAir;       // 0.0 - 1.0
+  final double moistureSoil;       // 0.0 - 1.0
   final double temperature;    // °C
   final double lightRadiation; // 0.0 - 1.0
-  final String moistureStatus;
+  final String moistureAirStatus;
+  final String moistureSoilStatus;
   final String temperatureStatus;
   final String lightStatus;
   final List<MockSensorReading> sensors;
   final DateTime updatedAt;
 
   const MockTelemetry({
-    required this.moisture,
+    required this.moistureAir,
+    required this.moistureSoil,
     required this.temperature,
     required this.lightRadiation,
-    required this.moistureStatus,
+    required this.moistureAirStatus,
+    required this.moistureSoilStatus,
     required this.temperatureStatus,
     required this.lightStatus,
     required this.sensors,
@@ -49,7 +53,6 @@ class DashboardProvider extends ChangeNotifier {
 
   DashboardProvider({required ZoneProvider zoneProvider})
       : _zoneProvider = zoneProvider {
-    debugPrint('🔵 [DashboardProvider] created — zones already: ${zoneProvider.zones.length}');
     _zoneProvider.addListener(_onZonesUpdated);
     // Si ya hay zonas cuando se crea el provider, selecciona inmediatamente
     if (_zoneProvider.zones.isNotEmpty) {
@@ -106,21 +109,25 @@ class DashboardProvider extends ChangeNotifier {
     final now = DateTime.now();
 
     // Valores mock basados en parámetros óptimos del crop si están disponibles
-    final optimalHumidity = crop?.optimalHumidity ?? 65.0;
+    final optimalHumidityAir = crop?.optimalHumidityAir ?? 65.0;
+    final optimalHumiditySoil = crop?.optimalHumiditySoil ?? 27.0;
     final optimalTemp = crop?.optimalTemperature ?? 22.0;
     final optimalLight = crop?.optimalLight ?? 800.0;
 
     // Simula valores cercanos al óptimo con pequeña variación
-    final mockMoisture = (optimalHumidity + _smallVariation()) / 100;
+    final mockMoistureAir = (optimalHumidityAir + _smallVariation()) / 100;
+    final mockMoistureSoil = (optimalHumiditySoil + _smallVariation()) / 100;
     final mockTemp = optimalTemp + _smallVariation();
     final mockLight = ((optimalLight + _smallVariation() * 10) / optimalLight)
         .clamp(0.0, 1.0);
 
     return MockTelemetry(
-      moisture: mockMoisture.clamp(0.0, 1.0),
+      moistureAir: mockMoistureAir.clamp(0.0, 1.0),
+      moistureSoil: mockMoistureSoil.clamp(0.0, 1.0),
       temperature: mockTemp,
       lightRadiation: mockLight,
-      moistureStatus: _statusForRatio(mockMoisture),
+      moistureAirStatus: _statusForRatio(mockMoistureAir),
+      moistureSoilStatus: _statusForRatio(mockMoistureSoil),
       temperatureStatus: 'Optimal',
       lightStatus: _statusForRatio(mockLight),
       sensors: _generateMockSensors(zone.id, now),
@@ -143,6 +150,13 @@ class DashboardProvider extends ChangeNotifier {
     }
 
     return [
+      MockSensorReading(
+        id: mockId(zoneId * 1000 + 1),
+        value: 67.5,
+        unit: '%',
+        type: 'AIR_MOISTURE',
+        lastSeen: now.subtract(const Duration(minutes: 5)),
+      ),
       MockSensorReading(
         id: mockId(zoneId * 1000 + 1),
         value: 72.5,

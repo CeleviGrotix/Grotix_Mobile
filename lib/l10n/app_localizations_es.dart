@@ -181,7 +181,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get moisture => 'Humedad';
+  String get moistureAir => 'Humedad del aire';
+
+  @override
+  String get moistureSoil => 'Humedad de la tierra';
 
   @override
   String get lightRadiation => 'Luz/Radiación';
