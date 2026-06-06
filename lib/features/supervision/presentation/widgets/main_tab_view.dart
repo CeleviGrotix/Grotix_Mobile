@@ -355,8 +355,6 @@ class MainTabView extends StatelessWidget {
                             color: Colors.white10, height: 20),
                       _SensorListItem(
                         id: entry.value.id,
-                        subtitle:
-                        '${entry.value.type} · ${entry.value.value} ${entry.value.unit}',
                         update: DateFormat('dd/MM/yyyy HH:mm')
                             .format(entry.value.lastSeen),
                         l10n: l10n,
@@ -414,13 +412,11 @@ class MainTabView extends StatelessWidget {
 
 class _SensorListItem extends StatelessWidget {
   final String id;
-  final String subtitle;
   final String update;
   final AppLocalizations l10n;
 
   const _SensorListItem({
     required this.id,
-    required this.subtitle,
     required this.update,
     required this.l10n,
   });
@@ -434,12 +430,9 @@ class _SensorListItem extends StatelessWidget {
             style: const TextStyle(
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 14)),
-        Text(subtitle,
-            style: const TextStyle(color: Colors.white60, fontSize: 12)),
-        const SizedBox(height: 2),
+                fontSize: 18)),
         Text(l10n.lastUpdate(update),
-            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+            style: const TextStyle(color: Colors.white54, fontSize: 14)),
       ],
     );
   }

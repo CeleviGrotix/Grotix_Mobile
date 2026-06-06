@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:grotix/features/supervision/presentation/widgets/zone_dropdown.dart';
 import 'package:grotix/l10n/app_localizations.dart';
 import 'package:grotix/common/theme/app_colors.dart';
+import '../../../identity/auth/presentation/providers/auth_provider.dart';
+import '../../../identity/profile/presentation/provider/profile_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/main_tab_view.dart';
 import '../widgets/people_tab_view.dart';
@@ -34,6 +36,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final user = context.watch<AuthProvider>().session?.user;
+    final profileProvider = context.watch<ProfileProvider>();
     final dashboardProvider = context.watch<DashboardProvider>();
 
     return Scaffold(
@@ -99,7 +103,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     onManualChanged: (v) => setState(() => _manualIrrigation = v),
                     onTimeChanged: (v) => setState(() => _maxTime = v!),
                   ),
-                  DashboardTab.people => PeopleTabView(l10n: l10n),
+                  DashboardTab.people => PeopleTabView(
+                    l10n: l10n,
+                    userRoleId: user?.roleId,
+                    associationId: profileProvider.user?.associationId,
+                  ),
                 },
               ),
             ),

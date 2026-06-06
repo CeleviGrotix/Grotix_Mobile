@@ -18,11 +18,13 @@ import 'features/supervision/application/services/crop_service.dart';
 import 'features/supervision/application/services/farm_service.dart';
 import 'features/supervision/infrastructure/datasource/crop_datasource.dart';
 import 'features/supervision/infrastructure/datasource/farm_datasource.dart';
+import 'features/supervision/infrastructure/datasource/members_datasource.dart';
 import 'features/supervision/infrastructure/datasource/zone_datasource.dart';
 import 'features/supervision/infrastructure/repositories/crop_repository_impl.dart';
 import 'features/supervision/infrastructure/repositories/farm_repository_impl.dart';
 import 'features/supervision/infrastructure/repositories/zone_repository_impl.dart';
 import 'features/supervision/presentation/providers/dashboard_provider.dart';
+import 'features/supervision/presentation/providers/members_provider.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
@@ -65,6 +67,11 @@ class _MyAppState extends State<MyApp> {
           ),
           update: (context, zoneProvider, previousDashboard) =>
           previousDashboard ?? DashboardProvider(zoneProvider: zoneProvider),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MembersProvider(
+            datasource: MembersRemoteDatasource(),
+          ),
         ),
       ],
       child: Consumer2<LocaleProvider, AuthProvider>(

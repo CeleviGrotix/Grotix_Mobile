@@ -6,16 +6,10 @@ import 'package:grotix/features/supervision/presentation/providers/zone_provider
 
 class MockSensorReading {
   final String id;
-  final double value;
-  final String unit;
-  final String type;
   final DateTime lastSeen;
 
   const MockSensorReading({
     required this.id,
-    required this.value,
-    required this.unit,
-    required this.type,
     required this.lastSeen,
   });
 }
@@ -152,30 +146,18 @@ class DashboardProvider extends ChangeNotifier {
     return [
       MockSensorReading(
         id: mockId(zoneId * 1000 + 1),
-        value: 67.5,
-        unit: '%',
-        type: 'AIR_MOISTURE',
         lastSeen: now.subtract(const Duration(minutes: 5)),
       ),
       MockSensorReading(
         id: mockId(zoneId * 1000 + 1),
-        value: 72.5,
-        unit: '%',
-        type: 'SOIL_MOISTURE',
         lastSeen: now.subtract(const Duration(minutes: 5)),
       ),
       MockSensorReading(
         id: mockId(zoneId * 1000 + 2),
-        value: 21.8,
-        unit: '°C',
-        type: 'TEMPERATURE',
         lastSeen: now.subtract(const Duration(minutes: 12)),
       ),
       MockSensorReading(
         id: mockId(zoneId * 1000 + 3),
-        value: 780.0,
-        unit: 'lux',
-        type: 'LIGHT',
         lastSeen: now.subtract(const Duration(minutes: 3)),
       ),
     ];
