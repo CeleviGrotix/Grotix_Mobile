@@ -16,12 +16,10 @@ import '../widgets/main_shell.dart';
 GoRouter buildAppRouter(AuthProvider authProvider) {
   return GoRouter(
     initialLocation: '/splash',
-    // refreshListenable hace que GoRouter re-evalúe el redirect
-    // cada vez que AuthProvider llama a notifyListeners()
     refreshListenable: authProvider,
     redirect: (context, state) {
       final status = authProvider.status;
-      final location = state.matchedLocation;
+      final location = state.uri.path;
 
       // Todavía verificando token guardado → splash
       if (status == AuthStatus.checking) return '/splash';

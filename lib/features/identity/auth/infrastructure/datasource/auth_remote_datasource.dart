@@ -62,10 +62,17 @@ class AuthRemoteDatasource {
       }),
     );
 
-    if (response.statusCode != 201) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      throw AuthException(data['message'] as String? ?? 'Registration failed');
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
     }
+
+    final body = response.body.trim();
+    if (body.isEmpty) {
+      throw AuthException('Server error (Status ${response.statusCode})');
+    }
+
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    throw AuthException(data['message'] as String? ?? 'Registration failed');
   }
 
   // ── Sign out ─────────────────────────────────────────────────────────────

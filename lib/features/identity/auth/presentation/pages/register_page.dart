@@ -67,9 +67,8 @@ class _RegisterPageState extends State<RegisterPage> {
         backgroundColor: AppColors.black,
         elevation: 0,
         leading: IconButton(
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft,
-              color: AppColors.white, size: 18),
-          onPressed: () => context.pop(),
+          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: AppColors.white, size: 18),
+          onPressed: () => context.go('/login'),
         ),
       ),
       body: SafeArea(

@@ -157,7 +157,7 @@ class _LoginPageState extends State<LoginPage> {
               // Link a register con i18n
               Center(
                 child: GestureDetector(
-                  onTap: () => context.push('/register'),
+                  onTap: () => context.go('/register'),
                   child: RichText(
                     text: TextSpan(
                       text: "${l10n.noAccount} ",

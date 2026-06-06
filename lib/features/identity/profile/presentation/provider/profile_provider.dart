@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 
@@ -102,6 +103,7 @@ class ProfileProvider extends ChangeNotifier {
         name: nameController.text.trim().isEmpty ? null : nameController.text.trim(),
         phone: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
         taxId: taxIdController.text.trim().isEmpty ? null : taxIdController.text.trim(),
+        profilePicture: _user!.profilePicture,
       );
 
       _isEditing = false;
@@ -130,6 +132,29 @@ class ProfileProvider extends ChangeNotifier {
 
   // ── Foto de perfil ────────────────────────────────────────────────────────
 
+  Future<String?> _uploadToCloudinary(File imageFile) async {
+    const cloudName = 'dd2fmyphr';
+    const uploadPreset = 'grotix_profiles';
+
+    final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = uploadPreset
+      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final jsonMap = jsonDecode(responseData);
+      // Retornamos la URL segura (https)
+      return jsonMap['secure_url'];
+    } else {
+      debugPrint('🔴 [ProfileProvider] Cloudinary error: ${response.statusCode}');
+      return null;
+    }
+  }
+
   Future<void> pickAndUploadProfilePicture(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     try {
@@ -144,18 +169,23 @@ class ProfileProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final bytes = await File(image.path).readAsBytes();
-      final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      // 1. Subimos la imagen a Cloudinary
+      final cloudinaryUrl = await _uploadToCloudinary(File(image.path));
+
+      if (cloudinaryUrl == null) {
+        throw Exception('Failed to upload image to Cloudinary');
+      }
 
       _user = await _repository.updateProfile(
         userId: _user!.id,
-        profilePicture: base64String,
+        profilePicture: cloudinaryUrl,
       );
 
       if (context.mounted) {
         _showSnackBar(context, l10n.profilePictureUpdated);
       }
     } catch (e) {
+      debugPrint('🔴 [ProfileProvider] Error uploading picture: $e');
       if (context.mounted) {
         _showSnackBar(context, l10n.errorUpdatingPicture, isError: true);
       }
