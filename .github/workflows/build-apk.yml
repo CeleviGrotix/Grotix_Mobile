@@ -26,7 +26,9 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "tag=$(grep '^version:' pubspec.yaml | sed 's/version: /v/' | sed 's/+.*//')" >> $GITHUB_OUTPUT
+        run: |
+          TAG=$(grep '^version:' pubspec.yaml | sed 's/version: /v/' | sed 's/+.*//')
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -34,3 +36,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: "Grotix Mobile ${{ steps.version.outputs.tag }}"
           files: build/app/outputs/flutter-apk/app-release.apk
+          make_latest: true
