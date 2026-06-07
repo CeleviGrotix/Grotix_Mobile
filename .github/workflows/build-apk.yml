@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -22,9 +24,13 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Get version
+        id: version
+        run: echo "tag=v$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: grotix-mobile-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Grotix Mobile ${{ steps.version.outputs.tag }}"
+          files: build/app/outputs/flutter-apk/app-release.apk
