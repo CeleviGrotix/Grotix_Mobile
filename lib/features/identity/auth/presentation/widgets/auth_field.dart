@@ -10,7 +10,7 @@ class AuthField extends StatelessWidget {
   final TextEditingController controller;
   final bool obscureText;
   final TextInputType? keyboardType;
-  final IconData icon;
+  final FaIconData icon;
   final Widget? suffixIcon;
 
   const AuthField({

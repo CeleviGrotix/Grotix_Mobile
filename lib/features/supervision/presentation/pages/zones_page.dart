@@ -233,7 +233,7 @@ class _SearchAndActions extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final Color color;
   final Color? borderColor;
   final VoidCallback onTap;

@@ -359,7 +359,7 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final String label;
   final String value;
   final bool italic;
@@ -402,7 +402,7 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _EditableDetailRow extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final String label;
   final TextEditingController controller;
   final String value;

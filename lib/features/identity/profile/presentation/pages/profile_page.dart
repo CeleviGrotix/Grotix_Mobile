@@ -461,7 +461,7 @@ class _ActionButton extends StatelessWidget {
 
 class _NotificationToggle extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final FaIconData icon;
   final bool value;
   final ValueChanged<bool> onChanged;
 
