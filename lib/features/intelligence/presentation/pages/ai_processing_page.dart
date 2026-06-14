@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../common/theme/app_colors.dart';
 import '../../../../common/utils/app_icons.dart';
@@ -39,13 +40,201 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
       processingState: _refreshingIds.contains(zone.id)
           ? AiProcessingState.processing
           : AiProcessingState.idle,
+      healthScore: zone.healthScore,
+      aiObservaciones: zone.aiObservaciones,
     );
   }
 
   Future<void> _onAnalyze(int zoneId) async {
+    final picker = ImagePicker();
+
+    final XFile? photo = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+      maxWidth: 1024,
+    );
+
+    if (photo == null) return;
+
     setState(() => _refreshingIds.add(zoneId));
-    await context.read<ZoneProvider>().refreshZone(zoneId);
-    if (mounted) setState(() => _refreshingIds.remove(zoneId));
+
+    // Llamamos al provider — ahora devuelve el resultado de la IA
+    final aiResult = await context
+        .read<ZoneProvider>()
+        .analyzeZoneWithAi(zoneId, photo.path);
+
+    if (!mounted) return;
+    setState(() => _refreshingIds.remove(zoneId));
+
+    // Mostramos el diálogo con el resultado completo
+    if (aiResult != null) {
+      _showAiResultDialog(aiResult);
+    } else {
+      _showErrorDialog();
+    }
+  }
+
+  void _showAiResultDialog(Map<String, dynamic> result) {
+    final String estado = result['estado_germinacion'] ?? 'unknown';
+    final int score = (result['health_score'] as num?)?.toInt() ?? 0;
+    final String obs = result['observaciones'] ?? '';
+
+    Color scoreColor;
+    if (score >= 75) {
+      scoreColor = const Color(0xFF4CAF50);
+    } else if (score >= 40) {
+      scoreColor = const Color(0xFFFFC107);
+    } else {
+      scoreColor = const Color(0xFFF44336);
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Título ────────────────────────────────────────────────
+              Row(
+                children: [
+                  const FaIcon(FontAwesomeIcons.microchip,
+                      color: AppColors.greenEmerald, size: 18),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Análisis IA',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close,
+                        color: Colors.white54, size: 20),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // ── Estado de germinación ─────────────────────────────────
+              _ResultRow(
+                icon: FontAwesomeIcons.seedling,
+                label: 'Estado',
+                value: estado.toUpperCase(),
+                valueColor: AppColors.greenEmerald,
+              ),
+              const SizedBox(height: 16),
+
+              // ── Health Score ──────────────────────────────────────────
+              Text(
+                'Health Score',
+                style: TextStyle(
+                  color: AppColors.white.withOpacity(0.6),
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: score / 100,
+                        minHeight: 10,
+                        backgroundColor: Colors.white12,
+                        valueColor:
+                        AlwaysStoppedAnimation<Color>(scoreColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '$score/100',
+                    style: TextStyle(
+                      color: scoreColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // ── Observaciones ─────────────────────────────────────────
+              if (obs.isNotEmpty) ...[
+                Text(
+                  'Observaciones',
+                  style: TextStyle(
+                    color: AppColors.white.withOpacity(0.6),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  obs,
+                  style: TextStyle(
+                    color: AppColors.white.withOpacity(0.85),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              // ── Botón OK ──────────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.greenEmerald,
+                    foregroundColor: AppColors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+                  child: const Text(
+                    'Entendido',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Error', style: TextStyle(color: Colors.redAccent)),
+        content: const Text(
+          'No se pudo conectar con el servidor de IA. Verifica que el servidor Python esté corriendo.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            // En _showErrorDialog, el botón OK:
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: const Text('OK',
+                style: TextStyle(color: AppColors.greenEmerald)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -124,6 +313,44 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Widgets de apoyo ──────────────────────────────────────────────────────────
+
+class _ResultRow extends StatelessWidget {
+  final FaIconData icon;
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  const _ResultRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        FaIcon(icon, size: 14, color: Colors.white38),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: const TextStyle(color: Colors.white54, fontSize: 14),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

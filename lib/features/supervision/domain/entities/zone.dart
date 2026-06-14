@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'crop.dart';
 
 enum ZonePhase {
@@ -42,9 +44,11 @@ class Zone {
   final String? imageUrl;
   final double? latitude;
   final double? longitude;
-
-  // Relación opcional — se carga junto a la zona cuando el backend la incluye
   final Crop? crop;
+
+  // ── Campos de IA ─────────────────────────────────────────────────────────
+  final int? healthScore;
+  final String? aiObservaciones;
 
   const Zone({
     required this.id,
@@ -57,6 +61,8 @@ class Zone {
     this.latitude,
     this.longitude,
     this.crop,
+    this.healthScore,
+    this.aiObservaciones,
   });
 
   factory Zone.fromMap(Map<String, dynamic> map, {Crop? crop}) {
@@ -73,6 +79,8 @@ class Zone {
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
       crop: crop,
+      healthScore: null,
+      aiObservaciones: null,
     );
   }
 
@@ -95,6 +103,8 @@ class Zone {
     double? latitude,
     double? longitude,
     Crop? crop,
+    int? healthScore,
+    String? aiObservaciones,
   }) {
     return Zone(
       id: id,
@@ -107,6 +117,8 @@ class Zone {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       crop: crop ?? this.crop,
+      healthScore: healthScore ?? this.healthScore,
+      aiObservaciones: aiObservaciones ?? this.aiObservaciones,
     );
   }
 
@@ -114,11 +126,17 @@ class Zone {
 
   ZonePhase get phase => ZonePhase.fromString(currentPhase);
 
-  /// Prioridad: name del backend → commonName del crop → fallback Zone #id
   String get displayName => name ?? crop?.commonName ?? 'Zone #$id';
 
-  /// Días desde que empezó la fase actual
   int? get daysInPhase => phaseStartDate != null
       ? DateTime.now().difference(phaseStartDate!).inDays
       : null;
+
+  /// Color del health score para la UI
+  Color get healthColor {
+    if (healthScore == null) return const Color(0xFF9E9E9E); // gris
+    if (healthScore! >= 75) return const Color(0xFF4CAF50);  // verde
+    if (healthScore! >= 40) return const Color(0xFFFFC107);  // amarillo
+    return const Color(0xFFF44336);                           // rojo
+  }
 }

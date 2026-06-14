@@ -1,12 +1,16 @@
-enum AiProcessingState { idle, processing, done, failed }
+enum AiProcessingState { idle, processing, done, error }
 
 class AiZoneStatus {
   final int zoneId;
   final String zoneName;
   final String? imageUrl;
   final DateTime lastUpdate;
-  final String currentStage; // e.g. "SEED", "GERMINATION", "VEGETATIVE"
+  final String currentStage;
   final AiProcessingState processingState;
+
+  // ── Campos de IA ─────────────────────────────────────────────────────────
+  final int? healthScore;
+  final String? aiObservaciones;
 
   const AiZoneStatus({
     required this.zoneId,
@@ -15,7 +19,10 @@ class AiZoneStatus {
     required this.lastUpdate,
     required this.currentStage,
     this.processingState = AiProcessingState.idle,
+    this.healthScore,
+    this.aiObservaciones,
   });
 
   bool get isProcessing => processingState == AiProcessingState.processing;
+  bool get isDone => processingState == AiProcessingState.done;
 }

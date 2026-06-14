@@ -6,12 +6,16 @@ import '../../application/services/zone_service.dart';
 import '../../domain/entities/farm.dart';
 import '../../domain/entities/zone.dart';
 
+import '../../../intelligence/infrastructure/datasource/ai_remote_datasource.dart';
+
 enum ZoneSortOption { nameAz, nameZa, phaseDateNewest, phaseDateOldest }
 
 class ZoneProvider extends ChangeNotifier {
   final ZoneService _zoneService;
   final FarmService _farmService;
   final CropService _cropService;
+
+  final AiRemoteDatasource _aiDatasource = AiRemoteDatasource();
 
   ZoneProvider({
     required ZoneService zoneService,
@@ -32,6 +36,10 @@ class ZoneProvider extends ChangeNotifier {
   ZoneSortOption _sortOption = ZoneSortOption.nameAz;
   ZonePhase? _phaseFilter;
 
+  // Último resultado de la IA (para mostrarlo en el diálogo)
+  Map<String, dynamic>? _lastAiResult;
+  Map<String, dynamic>? get lastAiResult => _lastAiResult;
+
   // ── Getters ───────────────────────────────────────────────────────────────
 
   Farm? get currentFarm => _currentFarm;
@@ -42,9 +50,8 @@ class ZoneProvider extends ChangeNotifier {
   ZonePhase? get phaseFilter => _phaseFilter;
   bool get hasError => _errorMessage.isNotEmpty;
 
-  // ── Carga: association → farm → zones ────────────────────────────────────
+  // ── Carga ─────────────────────────────────────────────────────────────────
 
-  /// Recibe el associationId del usuario loggeado (viene del ProfileProvider).
   Future<void> loadFromAssociation(int associationId) async {
     _isLoading = true;
     _errorMessage = '';
@@ -59,10 +66,8 @@ class ZoneProvider extends ChangeNotifier {
       _currentFarm = farm;
 
       final rawZones = await _zoneService.getZonesByFarm(farm.id);
-
       final cropMap = await _cropService.getCropMap();
       _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
-
       _applyFilters();
     } catch (e) {
       _errorMessage = e.toString();
@@ -73,13 +78,11 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
-  /// Recarga sin cambiar el associationId (útil para pull-to-refresh)
   Future<void> refresh() async {
     if (_currentFarm == null) return;
     await loadZones(_currentFarm!.id);
   }
 
-  /// Carga directa por farmId (si ya la tienes)
   Future<void> loadZones(int farmId) async {
     _isLoading = true;
     _errorMessage = '';
@@ -99,7 +102,7 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
-  // ── Filtros y ordenamiento ────────────────────────────────────────────────
+  // ── Filtros ───────────────────────────────────────────────────────────────
 
   void setSearchQuery(String query) {
     _searchQuery = query;
@@ -149,6 +152,47 @@ class ZoneProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── IA ────────────────────────────────────────────────────────────────────
+
+  /// Envía la imagen a Gemini y actualiza la zona con el resultado.
+  /// Devuelve el Map con los datos de IA para que la UI pueda mostrar el diálogo.
+  Future<Map<String, dynamic>?> analyzeZoneWithAi(
+      int zoneId, String imagePath) async {
+    try {
+      final aiResult = await _aiDatasource.analyzeCropImage(imagePath);
+
+      final String estado = aiResult['estado_germinacion'] ?? 'unknown';
+      final int score = (aiResult['health_score'] as num?)?.toInt() ?? 0;
+      final String observaciones = aiResult['observaciones'] ?? '';
+
+      debugPrint('✅ IA: Estado=$estado | Score=$score | Obs=$observaciones');
+
+      // Guardamos el último resultado para uso externo
+      _lastAiResult = aiResult;
+
+      // Actualizamos la zona en memoria con los datos de IA
+      _zones = _zones.map((z) {
+        if (z.id == zoneId) {
+          return z.copyWith(
+            currentPhase: estado.toUpperCase(),
+            phaseStartDate: DateTime.now(),
+            healthScore: score,
+            aiObservaciones: observaciones,
+          );
+        }
+        return z;
+      }).toList();
+
+      _applyFilters();
+      return aiResult;
+    } catch (e) {
+      debugPrint('🔴 [ZoneProvider] analyzeZoneWithAi error: $e');
+      _errorMessage = 'Error de IA: $e';
+      notifyListeners();
+      return null;
+    }
+  }
+
   // ── Mutaciones ────────────────────────────────────────────────────────────
 
   Future<bool> createZone({
@@ -167,7 +211,6 @@ class ZoneProvider extends ChangeNotifier {
       );
       if (newZone == null) return false;
 
-      // Enriquecer la nueva zona con su crop antes de agregarla
       final cropMap = await _cropService.getCropMap();
       final enriched = _zoneService.enrichWithCrops([newZone], cropMap);
       _zones = [..._zones, ...enriched];
@@ -222,7 +265,7 @@ class ZoneProvider extends ChangeNotifier {
       _zones = _zones.map((z) => z.id == zoneId ? enriched : z).toList();
       _applyFilters();
     } catch (e) {
-      debugPrint("🔴 [ZoneProvider] refreshZone error: $e");
+      debugPrint('🔴 [ZoneProvider] refreshZone error: $e');
     }
   }
 
@@ -231,7 +274,6 @@ class ZoneProvider extends ChangeNotifier {
       final updated = await _zoneService.updatePhase(zoneId, newPhase);
       if (updated == null) return false;
 
-      // Actualiza localmente sin recargar todo
       _zones = _zones.map((z) {
         if (z.id == zoneId) {
           return z.copyWith(
