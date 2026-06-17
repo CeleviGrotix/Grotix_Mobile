@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 // Cambia esto a 'true' cuando corras en celular físico, 'false' para emulador
-const bool isPhysicalDevice = true;
+// (Esto ahora solo afectará a tu backend principal en el puerto 5119)
+const bool isPhysicalDevice = false;
 
+// Tu backend principal (Asumo que sigue corriendo en tu PC local)
 String apiBase() {
   if (kIsWeb) return 'http://localhost:5119';
   switch (defaultTargetPlatform) {
@@ -15,14 +17,9 @@ String apiBase() {
   }
 }
 
+// Tu backend de Inteligencia Artificial (¡Ahora en Producción!)
 String pythonApiBase() {
-  if (kIsWeb) return 'http://localhost:8000';
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-      return isPhysicalDevice
-          ? 'http://192.168.18.221:8000'  // Celular físico
-          : 'http://10.0.2.2:8000';       // Emulador
-    case TargetPlatform.iOS: return 'http://localhost:8000';
-    default:                 return 'http://192.168.18.221:8000';
-  }
+  // Asegúrate de cambiar 'grotix-ai-api' por el nombre real que
+  // le pusiste a tu proyecto en la página de Render.
+  return 'https://grotix-ai-api.onrender.com';
 }
