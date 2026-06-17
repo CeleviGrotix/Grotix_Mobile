@@ -6,9 +6,11 @@ import 'package:grotix/features/supervision/domain/entities/zone.dart';
 import 'package:grotix/features/supervision/presentation/providers/zone_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../widgets/irrigation_active_dialog.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../identity/auth/presentation/providers/auth_provider.dart';
+import 'package:grotix/features/supervision/presentation/providers/irrigation_provider.dart';
 
 class ZoneDetailPage extends StatefulWidget {
   final Zone zone;
@@ -118,10 +120,12 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
     final canEdit = _canEdit(user?.roleId);
     final zone = widget.zone;
     final crop = zone.crop;
+    final isIrrigating = context.watch<IrrigationProvider>().isIrrigating;
 
     return Scaffold(
       backgroundColor: AppColors.black,
       appBar: AppBar(
+
         backgroundColor: AppColors.black,
         elevation: 0,
         leading: IconButton(
@@ -359,7 +363,7 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final String label;
   final String value;
   final bool italic;
@@ -402,7 +406,7 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _EditableDetailRow extends StatelessWidget {
-  final IconData icon;
+  final FaIconData icon;
   final String label;
   final TextEditingController controller;
   final String value;

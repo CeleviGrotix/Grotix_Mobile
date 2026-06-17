@@ -1,5 +1,3 @@
-
-
 import '../../domain/entities/crop.dart';
 import '../../domain/entities/zone.dart';
 import '../../domain/repositories/zone_repository.dart';
@@ -60,6 +58,15 @@ class ZoneService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// A diferencia de los demás métodos de este servicio, este NO traga la
+  /// excepción. El switch de modo de riego es la pieza central del fix al
+  /// conflicto manual/automático: si el backend rechaza el cambio (modo
+  /// inválido, sin permisos, etc.), el Provider necesita el mensaje real
+  /// para mostrarlo en la UI, no un null silencioso.
+  Future<Zone> updateIrrigationMode(int zoneId, IrrigationMode mode) async {
+    return await _repo.update(zoneId, {'irrigationMode': mode.label});
   }
 
   /// Filtra zonas listas para cosecha

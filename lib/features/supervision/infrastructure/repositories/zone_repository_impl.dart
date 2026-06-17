@@ -1,12 +1,28 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../domain/entities/zone.dart';
 import '../../domain/repositories/zone_repository.dart';
 import '../datasource/zone_datasource.dart';
 
-
 class ZoneRepositoryImpl implements ZoneRepository {
   final ZoneRemoteDatasource _ds;
   const ZoneRepositoryImpl(this._ds);
+
+  /// Construye una excepción priorizando el mensaje que envía el backend
+  /// (ej. los BadRequest de ZonesController devuelven { "message": "..." }).
+  /// Si el body viene vacío o no es JSON (ej. un Forbid sin contenido),
+  /// cae al fallback con el statusCode/reasonPhrase.
+  Exception _toException(http.Response res) {
+    try {
+      final body = jsonDecode(res.body);
+      if (body is Map && body['message'] != null) {
+        return Exception(body['message'] as String);
+      }
+    } catch (_) {
+      // body vacío o no es JSON válido — usamos el fallback de abajo
+    }
+    return Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+  }
 
   @override
   Future<Zone> getById(int zoneId) async {
@@ -14,7 +30,7 @@ class ZoneRepositoryImpl implements ZoneRepository {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return Zone.fromMap(jsonDecode(res.body) as Map<String, dynamic>);
     }
-    throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+    throw _toException(res);
   }
 
   @override
@@ -26,7 +42,7 @@ class ZoneRepositoryImpl implements ZoneRepository {
           .map((e) => Zone.fromMap(e as Map<String, dynamic>))
           .toList();
     }
-    throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+    throw _toException(res);
   }
 
   @override
@@ -35,7 +51,7 @@ class ZoneRepositoryImpl implements ZoneRepository {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return Zone.fromMap(jsonDecode(res.body) as Map<String, dynamic>);
     }
-    throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+    throw _toException(res);
   }
 
   @override
@@ -44,6 +60,6 @@ class ZoneRepositoryImpl implements ZoneRepository {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return Zone.fromMap(jsonDecode(res.body) as Map<String, dynamic>);
     }
-    throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+    throw _toException(res);
   }
 }

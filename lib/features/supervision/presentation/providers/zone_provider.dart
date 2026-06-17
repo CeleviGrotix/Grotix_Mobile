@@ -31,6 +31,7 @@ class ZoneProvider extends ChangeNotifier {
   String _searchQuery = '';
   ZoneSortOption _sortOption = ZoneSortOption.nameAz;
   ZonePhase? _phaseFilter;
+  final Set<int> _pendingIrrigationToggles = {};
 
   // ── Getters ───────────────────────────────────────────────────────────────
 
@@ -41,6 +42,8 @@ class ZoneProvider extends ChangeNotifier {
   ZoneSortOption get sortOption => _sortOption;
   ZonePhase? get phaseFilter => _phaseFilter;
   bool get hasError => _errorMessage.isNotEmpty;
+  bool isTogglingIrrigation(int zoneId) => _pendingIrrigationToggles.contains(zoneId);
+
 
   // ── Carga: association → farm → zones ────────────────────────────────────
 
@@ -246,6 +249,35 @@ class ZoneProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('🔴 [ZoneProvider] updateZonePhase error: $e');
       return false;
+    }
+  }
+
+  Future<void> updateIrrigationMode(int zoneId, IrrigationMode mode) async {
+    if (_pendingIrrigationToggles.contains(zoneId)) return;
+
+    final zoneIndex = _zones.indexWhere((z) => z.id == zoneId);
+    if (zoneIndex == -1) return;
+
+    final previousZone = _zones[zoneIndex];
+    if (previousZone.mode == mode) return; // ya está en ese modo, no-op
+
+    _pendingIrrigationToggles.add(zoneId);
+    _zones = List.of(_zones)
+      ..[zoneIndex] = previousZone.copyWith(irrigationMode: mode.label);
+    _applyFilters();
+
+    try {
+      await _zoneService.updateIrrigationMode(zoneId, mode);
+    } catch (e) {
+      final rollbackIndex = _zones.indexWhere((z) => z.id == zoneId);
+      if (rollbackIndex != -1) {
+        _zones = List.of(_zones)..[rollbackIndex] = previousZone;
+        _applyFilters();
+      }
+      debugPrint('🔴 [ZoneProvider] updateIrrigationMode error: $e');
+      rethrow;
+    } finally {
+      _pendingIrrigationToggles.remove(zoneId);
     }
   }
 }

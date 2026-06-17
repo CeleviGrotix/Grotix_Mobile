@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/features/supervision/domain/entities/crop.dart';
 import 'package:grotix/l10n/app_localizations.dart';
@@ -12,8 +13,8 @@ class SettingsTabView extends StatefulWidget {
   final bool manualIrrigation;
   final String maxTime;
   final int? userRoleId;
-  final ValueChanged<bool> onAutoChanged;
-  final ValueChanged<bool> onManualChanged;
+  final Future<void> Function(bool) onAutoChanged;
+  final Future<void> Function(bool) onManualChanged;
   final ValueChanged<String?> onTimeChanged;
 
   const SettingsTabView({
@@ -40,8 +41,52 @@ class _SettingsTabViewState extends State<SettingsTabView> {
   bool _isEditingLevels = false;
   bool _isSavingLevels = false;
 
+  // ── Duración de riego (nuevo: input numérico en vez de dropdown) ─────────
+  final _maxTimeController = TextEditingController();
+  final _maxTimeFocusNode = FocusNode();
+
   bool get _canEditLevels =>
       widget.userRoleId != null && widget.userRoleId! <= 3;
+
+  @override
+  void initState() {
+    super.initState();
+    _maxTimeController.text = _extractMinutes(widget.maxTime).toString();
+    _maxTimeFocusNode.addListener(() {
+      if (!_maxTimeFocusNode.hasFocus) {
+        _commitMaxTime(_maxTimeController.text);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsTabView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si el valor cambió desde afuera (ej. otro lugar de la app lo actualizó)
+    // y el usuario no está editando en este momento, sincronizamos el campo.
+    if (oldWidget.maxTime != widget.maxTime && !_maxTimeFocusNode.hasFocus) {
+      _maxTimeController.text = _extractMinutes(widget.maxTime).toString();
+    }
+  }
+
+  int _extractMinutes(String maxTime) =>
+      int.tryParse(maxTime.split(' ').first) ?? 1;
+
+  void _commitMaxTime(String raw) {
+    final parsed = int.tryParse(raw);
+    final clamped = (parsed ?? 1).clamp(1, 100);
+    if (clamped.toString() != raw) {
+      _maxTimeController.text = clamped.toString();
+    }
+    widget.onTimeChanged('$clamped min');
+  }
+
+  void _stepMaxTime(int delta) {
+    final current = int.tryParse(_maxTimeController.text) ?? 1;
+    final next = (current + delta).clamp(1, 100);
+    _maxTimeController.text = next.toString();
+    widget.onTimeChanged('$next min');
+  }
 
   @override
   void dispose() {
@@ -49,6 +94,8 @@ class _SettingsTabViewState extends State<SettingsTabView> {
     _moistureSoilController.dispose();
     _lightController.dispose();
     _tempController.dispose();
+    _maxTimeController.dispose();
+    _maxTimeFocusNode.dispose();
     super.dispose();
   }
 
@@ -63,13 +110,7 @@ class _SettingsTabViewState extends State<SettingsTabView> {
     setState(() => _isSavingLevels = true);
 
     // TODO: PATCH /crops/{id} cuando el backend lo exponga
-    // Valores disponibles:
-    // _moistureAirController.text → optimalHumidityAir
-    // _moistureSoilController.text → optimalHumiditySoil
-    // _lightController.text → optimalLight
-    // _tempController.text → optimalTemperature
-
-    await Future.delayed(const Duration(milliseconds: 500)); // simula llamada
+    await Future.delayed(const Duration(milliseconds: 500));
 
     setState(() {
       _isSavingLevels = false;
@@ -89,18 +130,15 @@ class _SettingsTabViewState extends State<SettingsTabView> {
 
   @override
   Widget build(BuildContext context) {
-    // Lee la zona seleccionada directamente del DashboardProvider
     final dashboard = context.watch<DashboardProvider>();
     final crop = dashboard.selectedZone?.crop;
 
-    // Rellena controllers cuando hay crop y no estamos editando
     if (crop != null && !_isEditingLevels) {
       _fillLevelControllers(crop);
     }
 
     return Column(
       children: [
-        // ── Irrigation ────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -114,44 +152,65 @@ class _SettingsTabViewState extends State<SettingsTabView> {
               _IrrigationToggle(
                 label: widget.l10n.allowAutoIrrigation,
                 value: widget.allowAuto,
-                onChanged: (val) {
-                  widget.onAutoChanged(val);
-                  if (val && widget.manualIrrigation) {
-                    widget.onManualChanged(false);
-                  }
+                onChanged: (bool val) async {
+                  await widget.onAutoChanged(val);
                 },
               ),
               const Divider(color: Colors.white10, height: 20),
+
               _IrrigationToggle(
                 label: widget.l10n.startManualIrrigation,
                 value: widget.manualIrrigation,
-                onChanged: (val) {
-                  widget.onManualChanged(val);
-                  if (val && widget.allowAuto) {
-                    widget.onAutoChanged(false);
-                  }
+                onChanged: (bool val) async {
+                  await widget.onManualChanged(val);
                 },
               ),
+
               const SizedBox(height: 20),
               _SectionTitle(widget.l10n.maxTimeIrrigation),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                     color: Colors.white10,
                     borderRadius: BorderRadius.circular(8)),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: widget.maxTime,
-                    dropdownColor: AppColors.darkCardBg,
-                    style: const TextStyle(color: AppColors.white),
-                    isExpanded: true,
-                    onChanged: widget.onTimeChanged,
-                    items: ['15 min', '30 min', '45 min']
-                        .map((t) =>
-                        DropdownMenuItem(value: t, child: Text(t)))
-                        .toList(),
-                  ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, color: AppColors.white),
+                      onPressed: () => _stepMaxTime(-1),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _maxTimeController,
+                        focusNode: _maxTimeFocusNode,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(3),
+                        ],
+                        style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          suffixText: 'min',
+                          suffixStyle: TextStyle(color: Colors.white54),
+                        ),
+                        onSubmitted: (value) {
+                          _commitMaxTime(value);
+                          _maxTimeFocusNode.unfocus();
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, color: AppColors.white),
+                      onPressed: () => _stepMaxTime(1),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -160,7 +219,6 @@ class _SettingsTabViewState extends State<SettingsTabView> {
 
         const SizedBox(height: 16),
 
-        // ── Critical levels ───────────────────────────────────
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -266,8 +324,6 @@ class _SettingsTabViewState extends State<SettingsTabView> {
     );
   }
 }
-
-// ─── Widgets ──────────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
   final String title;

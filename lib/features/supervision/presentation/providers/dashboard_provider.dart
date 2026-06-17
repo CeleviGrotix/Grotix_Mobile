@@ -62,11 +62,32 @@ class DashboardProvider extends ChangeNotifier {
   MockTelemetry? get telemetry => _telemetry;
   bool get isLoadingTelemetry => _isLoadingTelemetry;
   List<Zone> get availableZones => _zoneProvider.zones;
-
   void _onZonesUpdated() {
     debugPrint('🔵 [Dashboard] _onZonesUpdated — zones: ${_zoneProvider.zones.length}, selected: $_selectedZone');
-    if (_selectedZone == null && _zoneProvider.zones.isNotEmpty) {
-      selectZone(_zoneProvider.zones.first);
+
+    if (_selectedZone == null) {
+      if (_zoneProvider.zones.isNotEmpty) {
+        selectZone(_zoneProvider.zones.first);
+      }
+      return;
+    }
+
+    // Zone es inmutable: si la zona seleccionada fue actualizada en otro lado
+    // (ej. ZoneProvider.updateIrrigationMode hizo copyWith), la lista tiene
+    // una instancia NUEVA con el mismo id. Sincronizamos la referencia sin
+    // regenerar telemetría (eso solo debe pasar al cambiar de zona, no al
+    // refrescar un campo de la misma zona).
+    Zone? updated;
+    for (final z in _zoneProvider.zones) {
+      if (z.id == _selectedZone!.id) {
+        updated = z;
+        break;
+      }
+    }
+
+    if (updated != null && !identical(updated, _selectedZone)) {
+      _selectedZone = updated;
+      notifyListeners();
     }
   }
 
@@ -96,6 +117,11 @@ class DashboardProvider extends ChangeNotifier {
     if (_selectedZone == null && availableZones.isNotEmpty) {
       selectZone(availableZones.first);
     }
+  }
+
+  Future<void> setAutoIrrigation(int zoneId, bool allowAuto) async {
+    final mode = allowAuto ? IrrigationMode.automatic : IrrigationMode.manual;
+    await _zoneProvider.updateIrrigationMode(zoneId, mode);
   }
 
   MockTelemetry _generateMockTelemetry(Zone zone) {
