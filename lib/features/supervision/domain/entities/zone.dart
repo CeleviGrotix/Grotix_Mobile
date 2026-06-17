@@ -32,6 +32,26 @@ enum ZonePhase {
   };
 }
 
+enum IrrigationMode {
+  automatic,
+  manual,
+  unknown;
+
+  static IrrigationMode fromString(String? value) {
+    return switch (value?.toUpperCase()) {
+      'AUTOMATIC' => IrrigationMode.automatic,
+      'MANUAL' => IrrigationMode.manual,
+      _ => IrrigationMode.unknown,
+    };
+  }
+
+  String get label => switch (this) {
+    IrrigationMode.automatic => 'AUTOMATIC',
+    IrrigationMode.manual => 'MANUAL',
+    IrrigationMode.unknown => 'UNKNOWN',
+  };
+}
+
 class Zone {
   final int id;
   final int farmId;
@@ -42,6 +62,7 @@ class Zone {
   final String? imageUrl;
   final double? latitude;
   final double? longitude;
+  final String irrigationMode;
 
   // Relación opcional — se carga junto a la zona cuando el backend la incluye
   final Crop? crop;
@@ -56,6 +77,7 @@ class Zone {
     this.imageUrl,
     this.latitude,
     this.longitude,
+    this.irrigationMode = 'AUTOMATIC',
     this.crop,
   });
 
@@ -72,6 +94,7 @@ class Zone {
       imageUrl: map['imageUrl'] as String?,
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
+      irrigationMode: map['irrigationMode'] as String? ?? 'AUTOMATIC',
       crop: crop,
     );
   }
@@ -84,6 +107,7 @@ class Zone {
     'imageUrl': imageUrl,
     'latitude': latitude,
     'longitude': longitude,
+    'irrigationMode': irrigationMode,
   };
 
   Zone copyWith({
@@ -94,6 +118,7 @@ class Zone {
     String? imageUrl,
     double? latitude,
     double? longitude,
+    String? irrigationMode,
     Crop? crop,
   }) {
     return Zone(
@@ -106,6 +131,7 @@ class Zone {
       imageUrl: imageUrl ?? this.imageUrl,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      irrigationMode: irrigationMode ?? this.irrigationMode,
       crop: crop ?? this.crop,
     );
   }
@@ -113,6 +139,10 @@ class Zone {
   // ── Getters útiles para la UI ─────────────────────────────────────────────
 
   ZonePhase get phase => ZonePhase.fromString(currentPhase);
+
+  IrrigationMode get mode => IrrigationMode.fromString(irrigationMode);
+
+  bool get isManual => mode == IrrigationMode.manual;
 
   /// Prioridad: name del backend → commonName del crop → fallback Zone #id
   String get displayName => name ?? crop?.commonName ?? 'Zone #$id';

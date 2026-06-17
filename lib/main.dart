@@ -26,6 +26,10 @@ import 'features/supervision/infrastructure/repositories/zone_repository_impl.da
 import 'features/supervision/presentation/providers/dashboard_provider.dart';
 import 'features/supervision/presentation/providers/members_provider.dart';
 import 'l10n/app_localizations.dart';
+import 'features/supervision/application/services/irrigation_service.dart';
+import 'features/supervision/infrastructure/datasource/irrigation_datasource.dart';
+import 'features/supervision/infrastructure/repositories/irrigation_repository_impl.dart';
+import 'features/supervision/presentation/providers/irrigation_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,6 +63,15 @@ class _MyAppState extends State<MyApp> {
             zoneService: ZoneService(ZoneRepositoryImpl(ZoneRemoteDatasource())),
             farmService: FarmService(FarmRepositoryImpl(FarmRemoteDatasource())),
             cropService: CropService(CropRepositoryImpl(CropRemoteDatasource())),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => IrrigationProvider(
+            IrrigationService(
+              IrrigationRepositoryImpl(
+                IrrigationDatasource(),
+              ),
+            ),
           ),
         ),
         ChangeNotifierProxyProvider<ZoneProvider, DashboardProvider>(
