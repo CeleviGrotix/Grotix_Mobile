@@ -19,7 +19,8 @@ class MainTabView extends StatelessWidget {
     final telemetry = dashboard.telemetry;
     final crop = zone?.crop;
 
-    if (dashboard.isLoadingTelemetry || telemetry == null) {
+    // 1. Mostrar loading SOLO si realmente está cargando
+    if (dashboard.isLoadingTelemetry) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 60),
@@ -28,11 +29,71 @@ class MainTabView extends StatelessWidget {
       );
     }
 
+    // 2. Si ya cargó pero no hay datos (Endpoint regresó 404 o falló)
+    if (telemetry == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.sensors_off, color: Colors.white24, size: 64),
+              const SizedBox(height: 16),
+              const Text(
+                'Sin datos de sensores',
+                style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Aún no se ha recibido telemetría\npara la zona seleccionada.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white38, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => dashboard.reloadNewData(),
+                icon: const Icon(Icons.refresh, color: AppColors.black, size: 16),
+                label: const Text("Reintentar", style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenEmerald),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+
+    // 3. ¡Si hay datos, dibujamos la interfaz!
     final timeStr = DateFormat('HH:mm').format(telemetry.updatedAt);
+
+    // VALIDACIÓN A PRUEBA DE BALAS PARA LA IMAGEN
+    final String? imgUrl = zone?.imageUrl;
+    final bool hasValidImage = imgUrl != null && imgUrl.trim().isNotEmpty && imgUrl.startsWith('http');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (dashboard.hasNewDataAvailable)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => dashboard.reloadNewData(),
+                icon: const Icon(Icons.refresh, color: AppColors.black, size: 20),
+                label: const Text(
+                  'Nuevos datos detectados. Toca para actualizar',
+                  style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.greenEmerald,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 4,
+                ),
+              ),
+            ),
+          ),
+
         // ── Card info cultivo ───────────────────────────────
         Container(
           padding: const EdgeInsets.all(12),
@@ -44,15 +105,25 @@ class MainTabView extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: zone?.imageUrl != null
-                    ? Image.network(zone!.imageUrl!,
-                    width: 100, height: 100, fit: BoxFit.cover)
+                child: hasValidImage
+                    ? Image.network(
+                  imgUrl,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  // Si la URL falla al descargar, no explota, muestra este icono:
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.white10,
+                    child: const Icon(Icons.broken_image, color: Colors.white30, size: 40),
+                  ),
+                )
                     : Container(
                   width: 100,
                   height: 100,
                   color: Colors.white10,
-                  child: const Icon(Icons.grass,
-                      color: Colors.white30, size: 40),
+                  child: const Icon(Icons.grass, color: Colors.white30, size: 40),
                 ),
               ),
               const SizedBox(width: 14),
@@ -330,58 +401,7 @@ class MainTabView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // ── Sensores ─────────────────────────────────────────
-        _buildSectionTitle(l10n.sensors),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.darkCardBg,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Lista de sensores
-              Expanded(
-                flex: 4,
-                child: Column(
-                  children: telemetry.sensors
-                      .asMap()
-                      .entries
-                      .map((entry) => Column(
-                    children: [
-                      if (entry.key > 0)
-                        const Divider(
-                            color: Colors.white10, height: 20),
-                      _SensorListItem(
-                        id: entry.value.id,
-                        update: DateFormat('dd/MM/yyyy HH:mm')
-                            .format(entry.value.lastSeen),
-                        l10n: l10n,
-                      ),
-                    ],
-                  ))
-                      .toList(),
-                ),
-              ),
 
-              // Divisor
-              Container(
-                height: 200,
-                width: 1,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                color: Colors.white10,
-              ),
-
-              // Formulario añadir sensor
-              Expanded(
-                flex: 5,
-                child: _AddSensorForm(l10n: l10n),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
       ],
     );
   }
@@ -406,139 +426,4 @@ class MainTabView extends StatelessWidget {
     'average' => Colors.orange,
     _ => Colors.redAccent,
   };
-}
-
-// ─── Widgets privados ─────────────────────────────────────────────────────────
-
-class _SensorListItem extends StatelessWidget {
-  final String id;
-  final String update;
-  final AppLocalizations l10n;
-
-  const _SensorListItem({
-    required this.id,
-    required this.update,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(id,
-            style: const TextStyle(
-                color: AppColors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18)),
-        Text(l10n.lastUpdate(update),
-            style: const TextStyle(color: Colors.white54, fontSize: 14)),
-      ],
-    );
-  }
-}
-
-class _AddSensorForm extends StatefulWidget {
-  final AppLocalizations l10n;
-  const _AddSensorForm({required this.l10n});
-
-  @override
-  State<_AddSensorForm> createState() => _AddSensorFormState();
-}
-
-class _AddSensorFormState extends State<_AddSensorForm> {
-  final _idController = TextEditingController();
-  final _ssidController = TextEditingController();
-  final _passController = TextEditingController();
-
-  @override
-  void dispose() {
-    _idController.dispose();
-    _ssidController.dispose();
-    _passController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.l10n.addSensor,
-          style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        _SensorField(hint: '# ID', controller: _idController),
-        const SizedBox(height: 8),
-        _SensorField(hint: 'SSID', controller: _ssidController),
-        const SizedBox(height: 8),
-        _SensorField(
-            hint: widget.l10n.password,
-            controller: _passController,
-            isPassword: true),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton(
-            onPressed: () {
-              // TODO: conectar con hardware datasource
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.greenEmerald,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6)),
-            ),
-            child: const Text('ADD',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12)),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SensorField extends StatelessWidget {
-  final String hint;
-  final TextEditingController controller;
-  final bool isPassword;
-
-  const _SensorField({
-    required this.hint,
-    required this.controller,
-    this.isPassword = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 35,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword,
-        style: const TextStyle(color: AppColors.white, fontSize: 14),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle:
-          const TextStyle(color: Colors.white24, fontSize: 14),
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        ),
-      ),
-    );
-  }
 }

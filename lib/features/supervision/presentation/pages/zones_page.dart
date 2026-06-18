@@ -55,7 +55,7 @@ class _ZonesPageState extends State<ZonesPage> {
               _SearchAndActions(
                 controller: _searchController,
                 onChanged: (v) => zoneProvider.setSearchQuery(v),
-                onAdd: _onAddZone,
+                onAdd: () => _onAddZone(context, l10n), // Pasamos contexto y l10n
                 onFilter: _onFilter,
               ),
 
@@ -90,9 +90,96 @@ class _ZonesPageState extends State<ZonesPage> {
     );
   }
 
-  // TODO: FORMULARIO CREACIÓN ZONA
-  void _onAddZone() {
-    debugPrint('Navegando a creación de zona...');
+  // ── MODAL DE SOPORTE PARA NUEVAS ZONAS (INTERNACIONALIZADO) ────────────
+  void _onAddZone(BuildContext context, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.darkCardBg,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Para que el modal se adapte al contenido
+              children: [
+                // Icono decorativo
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.greenEmerald.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.support_agent, color: AppColors.greenEmerald, size: 42),
+                ),
+                const SizedBox(height: 20),
+
+                // Título
+                Text(
+                  l10n.addNewZone,
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+
+                // Explicación técnica y elegante
+                Text(
+                  l10n.addZoneSupportDesc,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                ),
+                const SizedBox(height: 24),
+
+                // Tarjeta con el número de contacto
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  // AQUÍ ESTÁ EL FIX: Agregamos "child:"
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.phone, color: AppColors.greenEmerald, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        l10n.supportPhone,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // Botón de cerrar
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.greenEmerald,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                        l10n.understood,
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _onFilter() {
@@ -194,7 +281,7 @@ class _SearchAndActions extends StatelessWidget {
               onChanged: onChanged,
               style: const TextStyle(color: AppColors.white, fontSize: 14),
               decoration: InputDecoration(
-                hintText: l10n.searchZones, // Traducción del placeholder
+                hintText: l10n.searchZones,
                 hintStyle: TextStyle(color: AppColors.white.withOpacity(0.35), fontSize: 14),
 
                 prefixIcon: Padding(

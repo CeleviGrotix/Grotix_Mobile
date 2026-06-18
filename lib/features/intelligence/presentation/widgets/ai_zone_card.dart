@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grotix/common/theme/app_colors.dart';
-import 'package:grotix/l10n/app_localizations.dart'; // Importante
+import 'package:grotix/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../domain/entities/ai_processing_status.dart';
@@ -24,18 +24,28 @@ class AiZoneCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.hardEdge,
-      child: Row(
+      child: Column(
         children: [
-          _ZoneImage(imageUrl: zone.imageUrl),
-          const SizedBox(width: 12),
-          Expanded(child: _ZoneInfo(zone: zone)),
-          _AnalyzeButton(zone: zone, onTap: onAnalyze),
-          const SizedBox(width: 12),
+          // ── Fila principal ────────────────────────────────────────────────
+          Row(
+            children: [
+              _ZoneImage(imageUrl: zone.imageUrl),
+              const SizedBox(width: 12),
+              Expanded(child: _ZoneInfo(zone: zone)),
+              _AnalyzeButton(zone: zone, onTap: onAnalyze),
+              const SizedBox(width: 12),
+            ],
+          ),
+
+          // ── Panel de resultado IA (solo si ya tiene datos) ────────────────
+          if (zone.healthScore != null) _AiResultPanel(zone: zone),
         ],
       ),
     );
   }
 }
+
+// ── Imagen ────────────────────────────────────────────────────────────────────
 
 class _ZoneImage extends StatelessWidget {
   final String? imageUrl;
@@ -47,8 +57,11 @@ class _ZoneImage extends StatelessWidget {
       width: 90,
       height: 90,
       child: imageUrl != null
-          ? Image.network(imageUrl!, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _placeholder())
+          ? Image.network(
+        imageUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _placeholder(),
+      )
           : _placeholder(),
     );
   }
@@ -59,6 +72,8 @@ class _ZoneImage extends StatelessWidget {
         color: Colors.white24, size: 32),
   );
 }
+
+// ── Info de zona ──────────────────────────────────────────────────────────────
 
 class _ZoneInfo extends StatelessWidget {
   final AiZoneStatus zone;
@@ -85,7 +100,6 @@ class _ZoneInfo extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            // Usando placeholder {time} del JSON
             l10n.lastUpdate(lastUpdateTime),
             style: TextStyle(
               color: AppColors.white.withOpacity(0.5),
@@ -94,7 +108,6 @@ class _ZoneInfo extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            // Usando placeholder {stage} del JSON
             l10n.stage(zone.currentStage),
             style: const TextStyle(
               color: AppColors.greenEmerald,
@@ -108,6 +121,8 @@ class _ZoneInfo extends StatelessWidget {
     );
   }
 }
+
+// ── Botón de analizar ─────────────────────────────────────────────────────────
 
 class _AnalyzeButton extends StatelessWidget {
   final AiZoneStatus zone;
@@ -147,6 +162,85 @@ class _AnalyzeButton extends StatelessWidget {
             color: AppColors.greenEmerald,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Panel de resultado IA ─────────────────────────────────────────────────────
+
+class _AiResultPanel extends StatelessWidget {
+  final AiZoneStatus zone;
+  const _AiResultPanel({required this.zone});
+
+  Color get _scoreColor {
+    final score = zone.healthScore ?? 0;
+    if (score >= 75) return const Color(0xFF4CAF50); // verde
+    if (score >= 40) return const Color(0xFFFFC107); // amarillo
+    return const Color(0xFFF44336);                  // rojo
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        border: Border(
+          top: BorderSide(color: Colors.white.withOpacity(0.08)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Score bar ──────────────────────────────────────────────────
+          Row(
+            children: [
+              const Text(
+                'Health Score',
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${zone.healthScore}/100',
+                style: TextStyle(
+                  color: _scoreColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (zone.healthScore ?? 0) / 100,
+              minHeight: 6,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(_scoreColor),
+            ),
+          ),
+
+          // ── Observaciones ──────────────────────────────────────────────
+          if (zone.aiObservaciones != null &&
+              zone.aiObservaciones!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              zone.aiObservaciones!,
+              style: TextStyle(
+                color: AppColors.white.withOpacity(0.6),
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

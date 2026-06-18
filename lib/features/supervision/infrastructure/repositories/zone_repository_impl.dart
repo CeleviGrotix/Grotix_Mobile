@@ -62,4 +62,15 @@ class ZoneRepositoryImpl implements ZoneRepository {
     }
     throw _toException(res);
   }
+
+  @override
+  Future<void> createAnalysisReport(int zoneId, String detectedPhase, int healthScore) async {
+    final res = await _ds.createAnalysisReport(zoneId, {
+      "detectedPhase": detectedPhase,
+      "healthScore": healthScore,
+    });
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
+    }
+  }
 }

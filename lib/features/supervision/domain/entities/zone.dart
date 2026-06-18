@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'crop.dart';
 
 enum ZonePhase {
@@ -67,6 +69,10 @@ class Zone {
   // Relación opcional — se carga junto a la zona cuando el backend la incluye
   final Crop? crop;
 
+  // ── Campos de IA ─────────────────────────────────────────────────────────
+  final int? healthScore;
+  final String? aiObservaciones;
+
   const Zone({
     required this.id,
     required this.farmId,
@@ -79,6 +85,8 @@ class Zone {
     this.longitude,
     this.irrigationMode = 'AUTOMATIC',
     this.crop,
+    this.healthScore,
+    this.aiObservaciones,
   });
 
   factory Zone.fromMap(Map<String, dynamic> map, {Crop? crop}) {
@@ -96,6 +104,8 @@ class Zone {
       longitude: (map['longitude'] as num?)?.toDouble(),
       irrigationMode: map['irrigationMode'] as String? ?? 'AUTOMATIC',
       crop: crop,
+      healthScore: null,
+      aiObservaciones: null,
     );
   }
 
@@ -120,6 +130,8 @@ class Zone {
     double? longitude,
     String? irrigationMode,
     Crop? crop,
+    int? healthScore,
+    String? aiObservaciones,
   }) {
     return Zone(
       id: id,
@@ -133,6 +145,8 @@ class Zone {
       longitude: longitude ?? this.longitude,
       irrigationMode: irrigationMode ?? this.irrigationMode,
       crop: crop ?? this.crop,
+      healthScore: healthScore ?? this.healthScore,
+      aiObservaciones: aiObservaciones ?? this.aiObservaciones,
     );
   }
 
@@ -151,4 +165,12 @@ class Zone {
   int? get daysInPhase => phaseStartDate != null
       ? DateTime.now().difference(phaseStartDate!).inDays
       : null;
+
+  /// Color del health score para la UI
+  Color get healthColor {
+    if (healthScore == null) return const Color(0xFF9E9E9E); // gris
+    if (healthScore! >= 75) return const Color(0xFF4CAF50);  // verde
+    if (healthScore! >= 40) return const Color(0xFFFFC107);  // amarillo
+    return const Color(0xFFF44336);                           // rojo
+  }
 }

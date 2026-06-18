@@ -173,5 +173,17 @@
     "placeholders": {
       "farm": { "type": "String" }
     }
-  }
+  },
+  "addNewZone": "Add new zone",
+  "addZoneSupportDesc": "To guarantee the correct linking of hardware (sensors and actuators) with the platform, the creation of new cultivation areas is managed exclusively by our support team.",
+  "supportPhone": "+51 999 999 999",
+  "understood": "Understood",
+  "aiAnalysisTitle": "AI Analysis",
+  "statusLabel": "Status",
+  "healthScoreLabel": "Health Score",
+  "observationsLabel": "Observations",
+  "errorTitle": "Error",
+  "aiConnectionError": "Could not connect to the AI server. Verify that the Python server is running.",
+  "okButton": "OK",
+  "noZonesAvailable": "No zones available"
 }

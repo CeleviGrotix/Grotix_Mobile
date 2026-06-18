@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../application/services/crop_service.dart';
 import '../../application/services/farm_service.dart';
@@ -6,12 +7,16 @@ import '../../application/services/zone_service.dart';
 import '../../domain/entities/farm.dart';
 import '../../domain/entities/zone.dart';
 
+import '../../../intelligence/infrastructure/datasource/ai_remote_datasource.dart';
+
 enum ZoneSortOption { nameAz, nameZa, phaseDateNewest, phaseDateOldest }
 
 class ZoneProvider extends ChangeNotifier {
   final ZoneService _zoneService;
   final FarmService _farmService;
   final CropService _cropService;
+
+  final AiRemoteDatasource _aiDatasource = AiRemoteDatasource();
 
   ZoneProvider({
     required ZoneService zoneService,
@@ -33,6 +38,9 @@ class ZoneProvider extends ChangeNotifier {
   ZonePhase? _phaseFilter;
   final Set<int> _pendingIrrigationToggles = {};
 
+  Map<String, dynamic>? _lastAiResult;
+  Map<String, dynamic>? get lastAiResult => _lastAiResult;
+
   // ── Getters ───────────────────────────────────────────────────────────────
 
   Farm? get currentFarm => _currentFarm;
@@ -45,9 +53,28 @@ class ZoneProvider extends ChangeNotifier {
   bool isTogglingIrrigation(int zoneId) => _pendingIrrigationToggles.contains(zoneId);
 
 
-  // ── Carga: association → farm → zones ────────────────────────────────────
+  // ── Funciones Auxiliares (SharedPreferences) ──────────────────────────────
 
-  /// Recibe el associationId del usuario loggeado (viene del ProfileProvider).
+  /// Revisa la memoria del teléfono y le inyecta las observaciones Y EL SCORE guardados
+  Future<List<Zone>> _applySavedAiData(List<Zone> inputZones) async {
+    final prefs = await SharedPreferences.getInstance();
+    return inputZones.map((z) {
+      final savedObs = prefs.getString('obs_zone_${z.id}');
+      final savedScore = prefs.getInt('score_zone_${z.id}');
+
+      // Si tenemos alguno de los dos datos guardados, se los inyectamos a la zona
+      if (savedObs != null || savedScore != null) {
+        return z.copyWith(
+          aiObservaciones: savedObs ?? z.aiObservaciones,
+          healthScore: savedScore ?? z.healthScore,
+        );
+      }
+      return z;
+    }).toList();
+  }
+
+  // ── Carga ─────────────────────────────────────────────────────────────────
+
   Future<void> loadFromAssociation(int associationId) async {
     _isLoading = true;
     _errorMessage = '';
@@ -62,9 +89,10 @@ class ZoneProvider extends ChangeNotifier {
       _currentFarm = farm;
 
       final rawZones = await _zoneService.getZonesByFarm(farm.id);
-
       final cropMap = await _cropService.getCropMap();
-      _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
+      final enrichedZones = _zoneService.enrichWithCrops(rawZones, cropMap);
+
+      _zones = await _applySavedAiData(enrichedZones);
 
       _applyFilters();
     } catch (e) {
@@ -76,13 +104,11 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
-  /// Recarga sin cambiar el associationId (útil para pull-to-refresh)
   Future<void> refresh() async {
     if (_currentFarm == null) return;
     await loadZones(_currentFarm!.id);
   }
 
-  /// Carga directa por farmId (si ya la tienes)
   Future<void> loadZones(int farmId) async {
     _isLoading = true;
     _errorMessage = '';
@@ -91,7 +117,10 @@ class ZoneProvider extends ChangeNotifier {
     try {
       final rawZones = await _zoneService.getZonesByFarm(farmId);
       final cropMap = await _cropService.getCropMap();
-      _zones = _zoneService.enrichWithCrops(rawZones, cropMap);
+      final enrichedZones = _zoneService.enrichWithCrops(rawZones, cropMap);
+
+      _zones = await _applySavedAiData(enrichedZones);
+
       _applyFilters();
     } catch (e) {
       _errorMessage = e.toString();
@@ -102,7 +131,7 @@ class ZoneProvider extends ChangeNotifier {
     }
   }
 
-  // ── Filtros y ordenamiento ────────────────────────────────────────────────
+  // ── Filtros ───────────────────────────────────────────────────────────────
 
   void setSearchQuery(String query) {
     _searchQuery = query;
@@ -152,6 +181,81 @@ class ZoneProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── IA ────────────────────────────────────────────────────────────────────
+
+  ZonePhase _mapAiStatusToPhase(String aiStatus) {
+    switch (aiStatus.toLowerCase()) {
+      case 'seed': return ZonePhase.seed;
+      case 'germination': return ZonePhase.germination;
+      case 'vegetative': return ZonePhase.vegetative;
+      case 'flowering': return ZonePhase.flowering;
+      case 'fruiting': return ZonePhase.fruiting;
+      case 'harvest': return ZonePhase.harvest;
+      case 'unknown': return ZonePhase.unknown;
+      default: return ZonePhase.unknown;
+    }
+  }
+
+  Future<Map<String, dynamic>?> analyzeZoneWithAi(
+      int zoneId, String imagePath) async {
+    try {
+      final aiResult = await _aiDatasource.analyzeCropImage(imagePath);
+
+      final String estado = aiResult['estado_germinacion'] ?? 'unknown';
+      final int score = (aiResult['health_score'] as num?)?.toInt() ?? 0;
+      final String observaciones = aiResult['observaciones'] ?? '';
+
+      debugPrint('✅ IA: Estado=$estado | Score=$score | Obs=$observaciones');
+
+      _lastAiResult = aiResult;
+
+      // 1. Guardamos silenciosamente las observaciones Y EL SCORE en el teléfono
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('obs_zone_$zoneId', observaciones);
+      await prefs.setInt('score_zone_$zoneId', score); // <- AQUÍ ESTÁ LA MAGIA
+
+      // 2. Actualizamos la memoria RAM (Flutter)
+      _zones = _zones.map((z) {
+        if (z.id == zoneId) {
+          return z.copyWith(
+            currentPhase: estado.toUpperCase(),
+            phaseStartDate: DateTime.now(),
+            healthScore: score,
+            aiObservaciones: observaciones,
+          );
+        }
+        return z;
+      }).toList();
+
+      _applyFilters();
+
+      // 3. Guardamos el REPORTE DE ANÁLISIS en Azure
+      final reportSuccess = await _zoneService.createAnalysisReport(
+          zoneId,
+          estado.toUpperCase(),
+          score
+      );
+      if (!reportSuccess) {
+        debugPrint('🔴 Falló al guardar el reporte de análisis en C#.');
+      }
+
+      // 4. Guardamos la FASE PRINCIPAL en Azure
+      final newPhase = _mapAiStatusToPhase(estado);
+      final phaseSuccess = await updateZonePhase(zoneId, newPhase);
+
+      if (!phaseSuccess) {
+        debugPrint('🔴 Falló al actualizar la fase principal en C#.');
+      }
+
+      return aiResult;
+    } catch (e) {
+      debugPrint('🔴 [ZoneProvider] analyzeZoneWithAi error: $e');
+      _errorMessage = 'Error de IA: $e';
+      notifyListeners();
+      return null;
+    }
+  }
+
   // ── Mutaciones ────────────────────────────────────────────────────────────
 
   Future<bool> createZone({
@@ -170,7 +274,6 @@ class ZoneProvider extends ChangeNotifier {
       );
       if (newZone == null) return false;
 
-      // Enriquecer la nueva zona con su crop antes de agregarla
       final cropMap = await _cropService.getCropMap();
       final enriched = _zoneService.enrichWithCrops([newZone], cropMap);
       _zones = [..._zones, ...enriched];
@@ -221,11 +324,15 @@ class ZoneProvider extends ChangeNotifier {
       final updated = await _zoneService.getZoneDetails(zoneId);
       if (updated == null) return;
       final cropMap = await _cropService.getCropMap();
-      final enriched = _zoneService.enrichWithCrops([updated], cropMap).first;
-      _zones = _zones.map((z) => z.id == zoneId ? enriched : z).toList();
+      final enrichedList = _zoneService.enrichWithCrops([updated], cropMap);
+
+      final enrichedWithAiData = await _applySavedAiData(enrichedList);
+      final finalZone = enrichedWithAiData.first;
+
+      _zones = _zones.map((z) => z.id == zoneId ? finalZone : z).toList();
       _applyFilters();
     } catch (e) {
-      debugPrint("🔴 [ZoneProvider] refreshZone error: $e");
+      debugPrint('🔴 [ZoneProvider] refreshZone error: $e');
     }
   }
 
@@ -234,7 +341,6 @@ class ZoneProvider extends ChangeNotifier {
       final updated = await _zoneService.updatePhase(zoneId, newPhase);
       if (updated == null) return false;
 
-      // Actualiza localmente sin recargar todo
       _zones = _zones.map((z) {
         if (z.id == zoneId) {
           return z.copyWith(

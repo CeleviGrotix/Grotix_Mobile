@@ -442,4 +442,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifInfoDesc(String farm) {
     return 'Automated schedule completed successfully across sector grids in $farm.';
   }
+
+  @override
+  String get addNewZone => 'Add new zone';
+
+  @override
+  String get addZoneSupportDesc =>
+      'To guarantee the correct linking of hardware (sensors and actuators) with the platform, the creation of new cultivation areas is managed exclusively by our support team.';
+
+  @override
+  String get supportPhone => '+51 999 999 999';
+
+  @override
+  String get understood => 'Understood';
+
+  @override
+  String get aiAnalysisTitle => 'AI Analysis';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get healthScoreLabel => 'Health Score';
+
+  @override
+  String get observationsLabel => 'Observations';
+
+  @override
+  String get errorTitle => 'Error';
+
+  @override
+  String get aiConnectionError =>
+      'Could not connect to the AI server. Verify that the Python server is running.';
+
+  @override
+  String get okButton => 'OK';
+
+  @override
+  String get noZonesAvailable => 'No zones available';
 }
