@@ -925,6 +925,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Automated schedule completed successfully across sector grids in {farm}.'**
   String notifInfoDesc(String farm);
+
+  /// No description provided for @addNewZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new zone'**
+  String get addNewZone;
+
+  /// No description provided for @addZoneSupportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'To guarantee the correct linking of hardware (sensors and actuators) with the platform, the creation of new cultivation areas is managed exclusively by our support team.'**
+  String get addZoneSupportDesc;
+
+  /// No description provided for @supportPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'+51 999 999 999'**
+  String get supportPhone;
+
+  /// No description provided for @understood.
+  ///
+  /// In en, this message translates to:
+  /// **'Understood'**
+  String get understood;
+
+  /// No description provided for @aiAnalysisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analysis'**
+  String get aiAnalysisTitle;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
+  /// No description provided for @healthScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Score'**
+  String get healthScoreLabel;
+
+  /// No description provided for @observationsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observations'**
+  String get observationsLabel;
+
+  /// No description provided for @errorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get errorTitle;
+
+  /// No description provided for @aiConnectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the AI server. Verify that the Python server is running.'**
+  String get aiConnectionError;
+
+  /// No description provided for @okButton.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get okButton;
+
+  /// No description provided for @noZonesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No zones available'**
+  String get noZonesAvailable;
 }
 
 class _AppLocalizationsDelegate

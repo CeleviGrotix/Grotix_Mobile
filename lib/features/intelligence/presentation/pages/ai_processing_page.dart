@@ -46,10 +46,60 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   }
 
   Future<void> _onAnalyze(int zoneId) async {
-    final picker = ImagePicker();
+    // 1. Preguntamos al usuario de dónde quiere sacar la foto
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Pequeña barra decorativa arriba
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Text(
+                  'Seleccionar imagen',
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: const FaIcon(FontAwesomeIcons.camera, color: AppColors.greenEmerald),
+                  title: const Text('Tomar foto', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+                ListTile(
+                  leading: const FaIcon(FontAwesomeIcons.image, color: AppColors.greenEmerald),
+                  title: const Text('Elegir de la galería', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        );
+      },
+    );
 
+    // Si tocó fuera del menú y no eligió nada, cancelamos.
+    if (source == null) return;
+
+    // 2. Abrimos la cámara o galería según su elección
+    final picker = ImagePicker();
     final XFile? photo = await picker.pickImage(
-      source: ImageSource.camera,
+      source: source,
       imageQuality: 80,
       maxWidth: 1024,
     );
@@ -58,7 +108,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
 
     setState(() => _refreshingIds.add(zoneId));
 
-    // Llamamos al provider — ahora devuelve el resultado de la IA
+    // Llamamos al provider con la foto seleccionada
     final aiResult = await context
         .read<ZoneProvider>()
         .analyzeZoneWithAi(zoneId, photo.path);
@@ -66,15 +116,17 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
     if (!mounted) return;
     setState(() => _refreshingIds.remove(zoneId));
 
+    final l10n = AppLocalizations.of(context)!;
+
     // Mostramos el diálogo con el resultado completo
     if (aiResult != null) {
-      _showAiResultDialog(aiResult);
+      _showAiResultDialog(aiResult, l10n);
     } else {
-      _showErrorDialog();
+      _showErrorDialog(l10n);
     }
   }
 
-  void _showAiResultDialog(Map<String, dynamic> result) {
+  void _showAiResultDialog(Map<String, dynamic> result, AppLocalizations l10n) {
     final String estado = result['estado_germinacion'] ?? 'unknown';
     final int score = (result['health_score'] as num?)?.toInt() ?? 0;
     final String obs = result['observaciones'] ?? '';
@@ -105,9 +157,9 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                   const FaIcon(FontAwesomeIcons.microchip,
                       color: AppColors.greenEmerald, size: 18),
                   const SizedBox(width: 10),
-                  const Text(
-                    'Análisis IA',
-                    style: TextStyle(
+                  Text(
+                    l10n.aiAnalysisTitle,
+                    style: const TextStyle(
                       color: AppColors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -126,7 +178,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
               // ── Estado de germinación ─────────────────────────────────
               _ResultRow(
                 icon: FontAwesomeIcons.seedling,
-                label: 'Estado',
+                label: l10n.statusLabel,
                 value: estado.toUpperCase(),
                 valueColor: AppColors.greenEmerald,
               ),
@@ -134,7 +186,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
 
               // ── Health Score ──────────────────────────────────────────
               Text(
-                'Health Score',
+                l10n.healthScoreLabel,
                 style: TextStyle(
                   color: AppColors.white.withOpacity(0.6),
                   fontSize: 13,
@@ -150,8 +202,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                         value: score / 100,
                         minHeight: 10,
                         backgroundColor: Colors.white12,
-                        valueColor:
-                        AlwaysStoppedAnimation<Color>(scoreColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(scoreColor),
                       ),
                     ),
                   ),
@@ -171,7 +222,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
               // ── Observaciones ─────────────────────────────────────────
               if (obs.isNotEmpty) ...[
                 Text(
-                  'Observaciones',
+                  l10n.observationsLabel,
                   style: TextStyle(
                     color: AppColors.white.withOpacity(0.6),
                     fontSize: 13,
@@ -202,9 +253,9 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-                  child: const Text(
-                    'Entendido',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n.understood,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -215,22 +266,21 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
     );
   }
 
-  void _showErrorDialog() {
+  void _showErrorDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Error', style: TextStyle(color: Colors.redAccent)),
-        content: const Text(
-          'No se pudo conectar con el servidor de IA. Verifica que el servidor Python esté corriendo.',
-          style: TextStyle(color: Colors.white70),
+        title: Text(l10n.errorTitle, style: const TextStyle(color: Colors.redAccent)),
+        content: Text(
+          l10n.aiConnectionError,
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
-            // En _showErrorDialog, el botón OK:
             onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: const Text('OK',
-                style: TextStyle(color: AppColors.greenEmerald)),
+            child: Text(l10n.okButton,
+                style: const TextStyle(color: AppColors.greenEmerald)),
           ),
         ],
       ),
@@ -294,7 +344,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                     : filtered.isEmpty
                     ? _EmptyState(
                     message: allZones.isEmpty
-                        ? 'No zones available'
+                        ? l10n.noZonesAvailable
                         : l10n.noZonesFound)
                     : ListView.separated(
                   itemCount: filtered.length,
