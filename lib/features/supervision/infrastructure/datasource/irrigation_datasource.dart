@@ -23,9 +23,11 @@ class IrrigationDatasource {
 
   Future<http.Response> startManual(int zoneId, double? volume, int? duration) async {
     final url = Uri.parse('$_base/api/v1/irrigation/start/$zoneId');
+
+    // Quitamos los 'if'. Si es nulo, que viaje como 'null' explícito en el JSON.
     final body = jsonEncode({
-      if (volume != null) "volumeLiters": volume,
-      if (duration != null) "durationMinutes": duration,
+      "volumeLiters": volume,
+      "durationMinutes": duration,
     });
 
     return await _client.post(url, headers: await _headers(), body: body);
