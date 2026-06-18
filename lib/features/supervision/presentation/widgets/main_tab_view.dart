@@ -19,7 +19,8 @@ class MainTabView extends StatelessWidget {
     final telemetry = dashboard.telemetry;
     final crop = zone?.crop;
 
-    if (dashboard.isLoadingTelemetry || telemetry == null) {
+    // 1. Mostrar loading SOLO si realmente está cargando
+    if (dashboard.isLoadingTelemetry) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 60),
@@ -28,11 +29,71 @@ class MainTabView extends StatelessWidget {
       );
     }
 
+    // 2. Si ya cargó pero no hay datos (Endpoint regresó 404 o falló)
+    if (telemetry == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.sensors_off, color: Colors.white24, size: 64),
+              const SizedBox(height: 16),
+              const Text(
+                'Sin datos de sensores',
+                style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Aún no se ha recibido telemetría\npara la zona seleccionada.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white38, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => dashboard.reloadNewData(),
+                icon: const Icon(Icons.refresh, color: AppColors.black, size: 16),
+                label: const Text("Reintentar", style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenEmerald),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+
+    // 3. ¡Si hay datos, dibujamos la interfaz!
     final timeStr = DateFormat('HH:mm').format(telemetry.updatedAt);
+
+    // VALIDACIÓN A PRUEBA DE BALAS PARA LA IMAGEN
+    final String? imgUrl = zone?.imageUrl;
+    final bool hasValidImage = imgUrl != null && imgUrl.trim().isNotEmpty && imgUrl.startsWith('http');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (dashboard.hasNewDataAvailable)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => dashboard.reloadNewData(),
+                icon: const Icon(Icons.refresh, color: AppColors.black, size: 20),
+                label: const Text(
+                  'Nuevos datos detectados. Toca para actualizar',
+                  style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.greenEmerald,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 4,
+                ),
+              ),
+            ),
+          ),
+
         // ── Card info cultivo ───────────────────────────────
         Container(
           padding: const EdgeInsets.all(12),
@@ -44,15 +105,25 @@ class MainTabView extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: zone?.imageUrl != null
-                    ? Image.network(zone!.imageUrl!,
-                    width: 100, height: 100, fit: BoxFit.cover)
+                child: hasValidImage
+                    ? Image.network(
+                  imgUrl,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  // Si la URL falla al descargar, no explota, muestra este icono:
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.white10,
+                    child: const Icon(Icons.broken_image, color: Colors.white30, size: 40),
+                  ),
+                )
                     : Container(
                   width: 100,
                   height: 100,
                   color: Colors.white10,
-                  child: const Icon(Icons.grass,
-                      color: Colors.white30, size: 40),
+                  child: const Icon(Icons.grass, color: Colors.white30, size: 40),
                 ),
               ),
               const SizedBox(width: 14),
@@ -484,9 +555,7 @@ class _AddSensorFormState extends State<_AddSensorForm> {
         Align(
           alignment: Alignment.centerRight,
           child: ElevatedButton(
-            onPressed: () {
-              // TODO: conectar con hardware datasource
-            },
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.greenEmerald,
               padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -1,32 +1,49 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:grotix/common/config/env.dart';
+import 'package:grotix/features/identity/auth/infrastructure/datasource/auth_local_datasource.dart';
 import 'package:grotix/features/supervision/domain/entities/zone.dart';
 import 'package:grotix/features/supervision/presentation/providers/zone_provider.dart';
 
-// ── Modelos mock de telemetría ────────────────────────────────────────────────
+// ── Entidades de Telemetría ────────
 
-class MockSensorReading {
-  final String id;
-  final DateTime lastSeen;
+class Threshold {
+  final String sensorType;
+  final double minValue;
+  final double maxValue;
 
-  const MockSensorReading({
-    required this.id,
-    required this.lastSeen,
-  });
+  Threshold({required this.sensorType, required this.minValue, required this.maxValue});
+
+  factory Threshold.fromMap(Map<String, dynamic> map) {
+    return Threshold(
+      sensorType: map['sensorType'] ?? '',
+      minValue: (map['minValue'] as num?)?.toDouble() ?? 0.0,
+      maxValue: (map['maxValue'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 }
 
-class MockTelemetry {
-  final double moistureAir;       // 0.0 - 1.0
-  final double moistureSoil;       // 0.0 - 1.0
-  final double temperature;    // °C
-  final double lightRadiation; // 0.0 - 1.0
+class TelemetrySensor {
+  final String id;
+  final DateTime lastSeen;
+  TelemetrySensor(this.id, this.lastSeen);
+}
+
+class ZoneTelemetry {
+  final double moistureAir;
+  final double moistureSoil;
+  final double temperature;
+  final double lightRadiation;
   final String moistureAirStatus;
   final String moistureSoilStatus;
   final String temperatureStatus;
   final String lightStatus;
-  final List<MockSensorReading> sensors;
+  final List<TelemetrySensor> sensors;
   final DateTime updatedAt;
 
-  const MockTelemetry({
+  const ZoneTelemetry({
     required this.moistureAir,
     required this.moistureSoil,
     required this.temperature,
@@ -38,33 +55,52 @@ class MockTelemetry {
     required this.sensors,
     required this.updatedAt,
   });
+
+  static String calculateStatus(double value, String type, List<Threshold> thresholds) {
+    if (thresholds.isEmpty) return 'Average';
+
+    final t = thresholds.where((x) => x.sensorType == type).firstOrNull;
+    if (t == null) return 'Unknown';
+
+    if (value >= t.minValue && value <= t.maxValue) return 'Optimal';
+
+    final margin = (t.maxValue - t.minValue) * 0.15;
+    if (value >= (t.minValue - margin) && value <= (t.maxValue + margin)) {
+      return 'Average';
+    }
+
+    return 'Critical';
+  }
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 class DashboardProvider extends ChangeNotifier {
   final ZoneProvider _zoneProvider;
+  final http.Client _client = http.Client();
 
   DashboardProvider({required ZoneProvider zoneProvider})
       : _zoneProvider = zoneProvider {
     _zoneProvider.addListener(_onZonesUpdated);
-    // Si ya hay zonas cuando se crea el provider, selecciona inmediatamente
     if (_zoneProvider.zones.isNotEmpty) {
       selectZone(_zoneProvider.zones.first);
     }
   }
 
   Zone? _selectedZone;
-  MockTelemetry? _telemetry;
+  ZoneTelemetry? _telemetry;
   bool _isLoadingTelemetry = false;
 
+  bool _hasNewDataAvailable = false;
+  Timer? _silentPoller;
+
   Zone? get selectedZone => _selectedZone;
-  MockTelemetry? get telemetry => _telemetry;
+  ZoneTelemetry? get telemetry => _telemetry;
   bool get isLoadingTelemetry => _isLoadingTelemetry;
+  bool get hasNewDataAvailable => _hasNewDataAvailable;
   List<Zone> get availableZones => _zoneProvider.zones;
 
   void _onZonesUpdated() {
-    debugPrint('🔵 [Dashboard] _onZonesUpdated — zones: ${_zoneProvider.zones.length}, selected: $_selectedZone');
     if (_selectedZone == null && _zoneProvider.zones.isNotEmpty) {
       selectZone(_zoneProvider.zones.first);
     }
@@ -73,93 +109,137 @@ class DashboardProvider extends ChangeNotifier {
   @override
   void dispose() {
     _zoneProvider.removeListener(_onZonesUpdated);
+    _silentPoller?.cancel();
+    _client.close();
     super.dispose();
   }
 
-  /// Selecciona zona y genera telemetría mock según los parámetros óptimos del crop
-  Future<void> selectZone(Zone zone) async {
-    _selectedZone = zone;
-    _isLoadingTelemetry = true;
-    notifyListeners();
-
-    // Simula latencia de red
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _telemetry = _generateMockTelemetry(zone);
-    _isLoadingTelemetry = false;
-    notifyListeners();
+  Future<Map<String, String>> _headers() async {
+    final token = await AuthLocalDatasource().getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  /// Selecciona la primera zona disponible automáticamente
+  Future<void> selectZone(Zone zone) async {
+    _selectedZone = zone;
+    _hasNewDataAvailable = false;
+    _silentPoller?.cancel();
+    _telemetry = null;
+
+    await _fetchFullTelemetry(showLoading: true);
+    _startSilentPolling();
+  }
+
   void selectFirstZoneIfNeeded() {
-    debugPrint('🔵 [Dashboard] selectFirstZoneIfNeeded — zones: ${_zoneProvider.zones.length}');
     if (_selectedZone == null && availableZones.isNotEmpty) {
       selectZone(availableZones.first);
     }
   }
 
-  MockTelemetry _generateMockTelemetry(Zone zone) {
-    final crop = zone.crop;
-    final now = DateTime.now();
-
-    // Valores mock basados en parámetros óptimos del crop si están disponibles
-    final optimalHumidityAir = crop?.optimalHumidityAir ?? 65.0;
-    final optimalHumiditySoil = crop?.optimalHumiditySoil ?? 27.0;
-    final optimalTemp = crop?.optimalTemperature ?? 22.0;
-    final optimalLight = crop?.optimalLight ?? 800.0;
-
-    // Simula valores cercanos al óptimo con pequeña variación
-    final mockMoistureAir = (optimalHumidityAir + _smallVariation()) / 100;
-    final mockMoistureSoil = (optimalHumiditySoil + _smallVariation()) / 100;
-    final mockTemp = optimalTemp + _smallVariation();
-    final mockLight = ((optimalLight + _smallVariation() * 10) / optimalLight)
-        .clamp(0.0, 1.0);
-
-    return MockTelemetry(
-      moistureAir: mockMoistureAir.clamp(0.0, 1.0),
-      moistureSoil: mockMoistureSoil.clamp(0.0, 1.0),
-      temperature: mockTemp,
-      lightRadiation: mockLight,
-      moistureAirStatus: _statusForRatio(mockMoistureAir),
-      moistureSoilStatus: _statusForRatio(mockMoistureSoil),
-      temperatureStatus: 'Optimal',
-      lightStatus: _statusForRatio(mockLight),
-      sensors: _generateMockSensors(zone.id, now),
-      updatedAt: now,
-    );
+  void reloadNewData() {
+    _fetchFullTelemetry(showLoading: true);
   }
 
-  double _smallVariation() => (DateTime.now().millisecond % 20) - 10.0;
-
-  String _statusForRatio(double ratio) {
-    if (ratio >= 0.65) return 'Optimal';
-    if (ratio >= 0.40) return 'Average';
-    return 'Critical';
-  }
-
-  List<MockSensorReading> _generateMockSensors(int zoneId, DateTime now) {
-    String mockId(int seed) {
-      // padLeft garantiza mínimo 6 caracteres antes del substring
-      return '#${seed.toRadixString(16).toUpperCase().padLeft(6, '0')}';
+  Future<void> _fetchFullTelemetry({bool showLoading = false}) async {
+    if (_selectedZone == null) return;
+    if (showLoading) {
+      _isLoadingTelemetry = true;
+      notifyListeners();
     }
 
-    return [
-      MockSensorReading(
-        id: mockId(zoneId * 1000 + 1),
-        lastSeen: now.subtract(const Duration(minutes: 5)),
-      ),
-      MockSensorReading(
-        id: mockId(zoneId * 1000 + 1),
-        lastSeen: now.subtract(const Duration(minutes: 5)),
-      ),
-      MockSensorReading(
-        id: mockId(zoneId * 1000 + 2),
-        lastSeen: now.subtract(const Duration(minutes: 12)),
-      ),
-      MockSensorReading(
-        id: mockId(zoneId * 1000 + 3),
-        lastSeen: now.subtract(const Duration(minutes: 3)),
-      ),
-    ];
+    try {
+      final zoneId = _selectedZone!.id;
+      final baseUrl = Env.apiBase;
+      final headers = await _headers();
+
+      // 1. Traer umbrales
+      final threshUrl = '$baseUrl/api/v1/telemetry/zones/$zoneId/thresholds';
+      final threshRes = await _client.get(Uri.parse(threshUrl), headers: headers);
+
+      List<Threshold> thresholds = [];
+      if (threshRes.statusCode == 200) {
+        final List rawThresh = jsonDecode(threshRes.body);
+        thresholds = rawThresh.map((e) => Threshold.fromMap(e)).toList();
+      }
+
+      // 2. Traer telemetría (Usamos la ruta correcta y le pedimos solo el más reciente con limit=1)
+      final telemetryUrl = '$baseUrl/api/v1/telemetry/zones/$zoneId?limit=1';
+      final telemetryRes = await _client.get(Uri.parse(telemetryUrl), headers: headers);
+
+      if (telemetryRes.statusCode == 200) {
+        final jsonResponse = jsonDecode(telemetryRes.body);
+        final readings = jsonResponse['readings'] as List<dynamic>? ?? [];
+
+        if (readings.isNotEmpty) {
+          // Extraemos el primer elemento (el más reciente) del arreglo
+          final rawData = readings.first;
+
+          final temp = (rawData['temperature'] as num).toDouble();
+          final humAir = (rawData['humidityAir'] as num).toDouble();
+          final humSoil = (rawData['humiditySoil'] as num).toDouble();
+          final light = (rawData['lightIntensity'] as num).toDouble();
+          final timestamp = DateTime.parse(rawData['timestamp']).toLocal();
+          final deviceId = rawData['deviceId'].toString();
+
+          _telemetry = ZoneTelemetry(
+            temperature: temp,
+            moistureAir: humAir / 100.0,
+            moistureSoil: humSoil / 100.0,
+            lightRadiation: (light / 100000.0).clamp(0.0, 1.0),
+            temperatureStatus: ZoneTelemetry.calculateStatus(temp, 'AIR_TEMPERATURE', thresholds),
+            moistureAirStatus: ZoneTelemetry.calculateStatus(humAir, 'AIR_HUMIDITY', thresholds),
+            moistureSoilStatus: ZoneTelemetry.calculateStatus(humSoil, 'SOIL_MOISTURE', thresholds),
+            lightStatus: ZoneTelemetry.calculateStatus(light, 'LIGHT_INTENSITY', thresholds),
+            updatedAt: timestamp,
+            sensors: [TelemetrySensor('ESP32-$deviceId', timestamp)],
+          );
+        } else {
+          _telemetry = null; // El arreglo de lecturas llegó vacío
+        }
+      } else {
+        _telemetry = null; // Status no fue 200
+      }
+    } catch (e) {
+      debugPrint("💥 [Telemetry] Error: $e");
+      _telemetry = null;
+    } finally {
+      _isLoadingTelemetry = false;
+      _hasNewDataAvailable = false;
+      notifyListeners();
+    }
+  }
+
+  void _startSilentPolling() {
+    _silentPoller?.cancel();
+    _silentPoller = Timer.periodic(const Duration(seconds: 15), (timer) async {
+      if (_selectedZone == null || _telemetry == null || _hasNewDataAvailable) return;
+
+      try {
+        // Usamos la ruta correcta con limit=1
+        final telemetryUrl = '${Env.apiBase}/api/v1/telemetry/zones/${_selectedZone!.id}?limit=1';
+        final telemetryRes = await _client.get(
+          Uri.parse(telemetryUrl),
+          headers: await _headers(),
+        );
+
+        if (telemetryRes.statusCode == 200) {
+          final jsonResponse = jsonDecode(telemetryRes.body);
+          final readings = jsonResponse['readings'] as List<dynamic>? ?? [];
+
+          if (readings.isNotEmpty) {
+            final rawData = readings.first;
+            final dbTime = DateTime.parse(rawData['timestamp']).toLocal();
+
+            // Si la fecha del registro en BD es más nueva que la que tenemos en pantalla...
+            if (dbTime.isAfter(_telemetry!.updatedAt)) {
+              _hasNewDataAvailable = true;
+              notifyListeners();
+            }
+          }
+        }
+      } catch (_) {}
+    });
   }
 }
