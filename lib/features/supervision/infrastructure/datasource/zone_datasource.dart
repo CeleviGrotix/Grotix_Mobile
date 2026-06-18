@@ -46,4 +46,14 @@ class ZoneRemoteDatasource {
       body: jsonEncode(data),
     );
   }
+
+  Future<http.Response> createAnalysisReport(int zoneId, Map<String, dynamic> data) async {
+    final uri = Uri.parse('$_base$_path/$zoneId/analysis-reports');
+    return _client.post(
+      uri,
+      headers: await _headers(),
+      body: jsonEncode(data),
+    );
+  }
+
 }

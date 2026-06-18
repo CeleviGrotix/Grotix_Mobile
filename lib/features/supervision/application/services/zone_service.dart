@@ -45,11 +45,26 @@ class ZoneService {
 
   Future<Zone?> updatePhase(int zoneId, ZonePhase newPhase) async {
     try {
-      return await _repo.update(zoneId, {
-        'currentPhase': newPhase.label,
-        'phaseStartDate': DateTime.now().toIso8601String(),
-      });
-    } catch (_) {
+      // 1. Primero buscamos la zona actual para no perder datos
+      final currentZone = await getZoneDetails(zoneId);
+      if (currentZone == null) return null;
+
+      // 2. Preparamos el payload completo exactamente como lo pide el Swagger
+      final updatePayload = {
+        "name": currentZone.name,
+        "cropId": currentZone.cropId,
+        "latitude": currentZone.latitude,
+        "longitude": currentZone.longitude,
+        "currentPhase": newPhase.label, // El dato nuevo de la IA
+        "phaseStartDate": DateTime.now().toUtc().toIso8601String(), // El tiempo nuevo de la IA (UTC como pide C#)
+        "imageUrl": currentZone.imageUrl,
+        "irrigationMode": "MANUAL", // O el campo que uses por defecto/tengas guardado
+      };
+
+      // 3. Enviamos el PATCH con todo completo
+      return await _repo.update(zoneId, updatePayload);
+    } catch (e) {
+      print("Error en ZoneService.updatePhase: $e");
       return null;
     }
   }
@@ -71,5 +86,15 @@ class ZoneService {
   /// Enriquece las zonas con su Crop usando un mapa precargado
   List<Zone> enrichWithCrops(List<Zone> zones, Map<int, Crop> cropMap) {
     return zones.map((z) => z.copyWith(crop: cropMap[z.cropId])).toList();
+  }
+
+  Future<bool> createAnalysisReport(int zoneId, String detectedPhase, int healthScore) async {
+    try {
+      await _repo.createAnalysisReport(zoneId, detectedPhase, healthScore);
+      return true;
+    } catch (e) {
+      print("Error en createAnalysisReport: $e");
+      return false;
+    }
   }
 }
