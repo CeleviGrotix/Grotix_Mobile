@@ -75,7 +75,25 @@ class ZoneProvider extends ChangeNotifier {
 
   // ── Carga ─────────────────────────────────────────────────────────────────
 
+  /// Vacía zonas y selección al cambiar de cuenta u organización.
+  void reset() {
+    _currentFarm = null;
+    _zones = [];
+    _filteredZones = [];
+    _errorMessage = '';
+    _searchQuery = '';
+    _phaseFilter = null;
+    _sortOption = ZoneSortOption.nameAz;
+    _lastAiResult = null;
+    _pendingIrrigationToggles.clear();
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> loadFromAssociation(int associationId) async {
+    _currentFarm = null;
+    _zones = [];
+    _filteredZones = [];
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();

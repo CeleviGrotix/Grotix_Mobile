@@ -73,4 +73,13 @@ class ZoneRepositoryImpl implements ZoneRepository {
       throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
     }
   }
+
+  @override
+  Future<List<int>> exportZoneReportPdf(int zoneId, DateTime from, DateTime to) async {
+    final res = await _ds.exportZoneReportPdf(zoneId, from: from, to: to);
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return res.bodyBytes;
+    }
+    throw _toException(res);
+  }
 }

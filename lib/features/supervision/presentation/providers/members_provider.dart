@@ -133,4 +133,16 @@ class MembersProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void reset() {
+    _zoneMembers = [];
+    _associationMembers = [];
+    _zoneMemberIds = {};
+    _pendingIds.clear();
+    _currentZoneId = null;
+    _currentAssociationId = null;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }

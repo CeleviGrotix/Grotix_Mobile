@@ -11,18 +11,18 @@ class SettingsTabView extends StatefulWidget {
   final AppLocalizations l10n;
   final bool allowAuto;
   final bool manualIrrigation;
-  final String maxTime;
+  final int maxTimeMinutes;
   final int? userRoleId;
   final Future<void> Function(bool) onAutoChanged;
   final Future<void> Function(bool) onManualChanged;
-  final ValueChanged<String?> onTimeChanged;
+  final ValueChanged<int> onTimeChanged;
 
   const SettingsTabView({
     super.key,
     required this.l10n,
     required this.allowAuto,
     required this.manualIrrigation,
-    required this.maxTime,
+    required this.maxTimeMinutes,
     required this.onAutoChanged,
     required this.onManualChanged,
     required this.onTimeChanged,
@@ -51,7 +51,7 @@ class _SettingsTabViewState extends State<SettingsTabView> {
   @override
   void initState() {
     super.initState();
-    _maxTimeController.text = _extractMinutes(widget.maxTime).toString();
+    _maxTimeController.text = widget.maxTimeMinutes.toString();
     _maxTimeFocusNode.addListener(() {
       if (!_maxTimeFocusNode.hasFocus) {
         _commitMaxTime(_maxTimeController.text);
@@ -62,15 +62,11 @@ class _SettingsTabViewState extends State<SettingsTabView> {
   @override
   void didUpdateWidget(covariant SettingsTabView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Si el valor cambió desde afuera (ej. otro lugar de la app lo actualizó)
-    // y el usuario no está editando en este momento, sincronizamos el campo.
-    if (oldWidget.maxTime != widget.maxTime && !_maxTimeFocusNode.hasFocus) {
-      _maxTimeController.text = _extractMinutes(widget.maxTime).toString();
+    if (oldWidget.maxTimeMinutes != widget.maxTimeMinutes &&
+        !_maxTimeFocusNode.hasFocus) {
+      _maxTimeController.text = widget.maxTimeMinutes.toString();
     }
   }
-
-  int _extractMinutes(String maxTime) =>
-      int.tryParse(maxTime.split(' ').first) ?? 1;
 
   void _commitMaxTime(String raw) {
     final parsed = int.tryParse(raw);
@@ -78,14 +74,14 @@ class _SettingsTabViewState extends State<SettingsTabView> {
     if (clamped.toString() != raw) {
       _maxTimeController.text = clamped.toString();
     }
-    widget.onTimeChanged('$clamped min');
+    widget.onTimeChanged(clamped);
   }
 
   void _stepMaxTime(int delta) {
     final current = int.tryParse(_maxTimeController.text) ?? 1;
     final next = (current + delta).clamp(1, 100);
     _maxTimeController.text = next.toString();
-    widget.onTimeChanged('$next min');
+    widget.onTimeChanged(next);
   }
 
   @override

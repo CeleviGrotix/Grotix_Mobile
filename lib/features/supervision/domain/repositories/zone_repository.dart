@@ -12,5 +12,7 @@ abstract class ZoneRepository {
 
   Future<void> createAnalysisReport(int zoneId, String detectedPhase, int healthScore);
 
+  Future<List<int>> exportZoneReportPdf(int zoneId, DateTime from, DateTime to);
+
   Future<Zone> create(Map<String, dynamic> data);
 }

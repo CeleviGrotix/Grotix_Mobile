@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:grotix/common/di/locale_provider.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/l10n/app_localizations.dart';
+import 'package:grotix/common/session/session_reset.dart';
 import 'package:provider/provider.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -24,8 +25,11 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     // Carga el perfil real al entrar a la página
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileProvider>().loadProfile();
-      context.read<ProfileProvider>().loadUnreadCount();
+      final provider = context.read<ProfileProvider>();
+      if (provider.user == null && !provider.isLoading) {
+        provider.loadProfile(clearExisting: false);
+      }
+      provider.loadUnreadCount();
     });
   }
 
@@ -57,6 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     // Solo si se confirmó de verdad, procedemos al logout
     if (confirmed == true && mounted) {
+      SessionReset.clearAll(context);
       await context.read<AuthProvider>().logout();
       if (mounted) {
         // Usamos go para resetear el stack de navegación al login

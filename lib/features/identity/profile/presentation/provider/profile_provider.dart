@@ -50,7 +50,17 @@ class ProfileProvider extends ChangeNotifier {
 
   // ── Carga inicial ─────────────────────────────────────────────────────────
 
-  Future<void> loadProfile() async {
+  Future<void> loadProfile({bool clearExisting = true}) async {
+    if (clearExisting) {
+      _user = null;
+      _association = null;
+      _notifications = [];
+      _unreadCount = 0;
+      _isEditing = false;
+      nameController.clear();
+      phoneController.clear();
+      taxIdController.clear();
+    }
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -278,6 +288,20 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   // ── Limpieza ──────────────────────────────────────────────────────────────
+
+  void reset() {
+    _user = null;
+    _association = null;
+    _notifications = [];
+    _unreadCount = 0;
+    _isEditing = false;
+    _isLoading = false;
+    _errorMessage = null;
+    nameController.clear();
+    phoneController.clear();
+    taxIdController.clear();
+    notifyListeners();
+  }
 
   @override
   void dispose() {

@@ -141,6 +141,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generate => 'GENERATE';
 
   @override
+  String get reportGenerated => 'Report generated';
+
+  @override
+  String get reportGenerateFailed => 'Could not generate report';
+
+  @override
+  String get reportPeriodTitle => 'Report period';
+
+  @override
+  String get quickRangeLabel => 'Shortcut (fills dates)';
+
+  @override
+  String get customRange => 'Custom';
+
+  @override
+  String get reportInvalidRange => 'Start date must be on or before end date';
+
+  @override
+  String get reportMissingDates => 'Select start and end dates';
+
+  @override
   String get week => '1 week';
 
   @override

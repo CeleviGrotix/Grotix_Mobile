@@ -350,6 +350,48 @@ abstract class AppLocalizations {
   /// **'GENERATE'**
   String get generate;
 
+  /// No description provided for @reportGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Report generated'**
+  String get reportGenerated;
+
+  /// No description provided for @reportGenerateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate report'**
+  String get reportGenerateFailed;
+
+  /// No description provided for @reportPeriodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report period'**
+  String get reportPeriodTitle;
+
+  /// No description provided for @quickRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut (fills dates)'**
+  String get quickRangeLabel;
+
+  /// No description provided for @customRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customRange;
+
+  /// No description provided for @reportInvalidRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date must be on or before end date'**
+  String get reportInvalidRange;
+
+  /// No description provided for @reportMissingDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Select start and end dates'**
+  String get reportMissingDates;
+
   /// No description provided for @week.
   ///
   /// In en, this message translates to:

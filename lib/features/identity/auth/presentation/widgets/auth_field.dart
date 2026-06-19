@@ -1,5 +1,3 @@
-// ─── Widgets ─────────────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -10,8 +8,11 @@ class AuthField extends StatelessWidget {
   final TextEditingController controller;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
   final FaIconData icon;
   final Widget? suffixIcon;
+  final void Function(String)? onSubmitted;
 
   const AuthField({
     required this.label,
@@ -19,7 +20,10 @@ class AuthField extends StatelessWidget {
     required this.icon,
     this.obscureText = false,
     this.keyboardType,
+    this.textInputAction,
+    this.focusNode,
     this.suffixIcon,
+    this.onSubmitted,
   });
 
   @override
@@ -42,28 +46,40 @@ class AuthField extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
+            focusNode: focusNode,
             obscureText: obscureText,
             keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            onSubmitted: onSubmitted,
+            enableInteractiveSelection: true,
+            enableSuggestions: !obscureText,
+            autocorrect: !obscureText,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
             style: const TextStyle(color: AppColors.white, fontSize: 15),
+            cursorColor: AppColors.greenEmerald,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               prefixIcon: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: FaIcon(icon,
-                    size: 16, color: AppColors.white.withOpacity(0.4)),
+                child: FaIcon(
+                  icon,
+                  size: 16,
+                  color: AppColors.white.withOpacity(0.4),
+                ),
               ),
               suffixIcon: suffixIcon != null
                   ? Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: suffixIcon,
-              )
+                      padding: const EdgeInsets.only(right: 14),
+                      child: suffixIcon,
+                    )
                   : null,
               prefixIconConstraints:
-              const BoxConstraints(minWidth: 0, minHeight: 0),
+                  const BoxConstraints(minWidth: 0, minHeight: 0),
               suffixIconConstraints:
-              const BoxConstraints(minWidth: 0, minHeight: 0),
+                  const BoxConstraints(minWidth: 0, minHeight: 0),
             ),
           ),
         ),

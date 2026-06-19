@@ -295,9 +295,27 @@ class MainTabView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // ── Radiación ────────────────────────────────────────
+        // ── Radiación (LDR: % como humedad; BH1750: lux) ──
         _buildSectionTitle(l10n.lightRadiation),
-        Container(
+        Builder(
+          builder: (context) {
+            final percentScale = telemetry.lightUsesPercentScale;
+            final lightValue = telemetry.lightRaw;
+            final barValue = percentScale
+                ? telemetry.lightRadiation.clamp(0.0, 1.0)
+                : (telemetry.lightRadiation /
+                        (crop != null && crop.optimalLight > 0
+                            ? crop.optimalLight * 1.3
+                            : 100000.0))
+                    .clamp(0.0, 1.0);
+            final valueLabel = percentScale
+                ? '${lightValue.round()}%'
+                : '${lightValue.round()} lux';
+            final optimalLabel = crop != null
+                ? '${l10n.optimal}: ${ZoneTelemetry.optimalLightDisplay(crop.optimalLight, percentScale).round()}${percentScale ? '%' : ' lux'}'
+                : null;
+
+            return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
               color: AppColors.darkCardBg,
@@ -322,18 +340,28 @@ class MainTabView extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              Text(
+                valueLabel,
+                style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('0%',
-                      style: TextStyle(color: AppColors.white, fontSize: 12)),
+                  Text(
+                    percentScale ? '0%' : '0',
+                    style: const TextStyle(color: AppColors.white, fontSize: 12),
+                  ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: telemetry.lightRadiation,
+                          value: barValue,
                           minHeight: 14,
                           color: _statusColor(telemetry.lightStatus),
                           backgroundColor: Colors.white10,
@@ -341,15 +369,17 @@ class MainTabView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Text('100%',
-                      style: TextStyle(color: AppColors.white, fontSize: 12)),
+                  Text(
+                    percentScale ? '100%' : '${(crop != null && crop.optimalLight > 0 ? crop.optimalLight * 1.3 : 100000).round()}',
+                    style: const TextStyle(color: AppColors.white, fontSize: 12),
+                  ),
                 ],
               ),
-              if (crop != null)
+              if (optimalLabel != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    '${l10n.optimal}: ${crop.optimalLight.round()} lux',
+                    optimalLabel,
                     style: TextStyle(
                         color: AppColors.white.withOpacity(0.4),
                         fontSize: 12),
@@ -357,6 +387,8 @@ class MainTabView extends StatelessWidget {
                 ),
             ],
           ),
+        );
+          },
         ),
         const SizedBox(height: 20),
 

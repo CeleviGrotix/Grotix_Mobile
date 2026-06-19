@@ -5,7 +5,9 @@ import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/common/utils/app_icons.dart';
 import 'package:provider/provider.dart';
 import '../../features/connectivity/presentation/pages/notifications_page.dart';
+import '../../features/identity/auth/presentation/providers/auth_provider.dart';
 import '../../features/identity/profile/presentation/provider/profile_provider.dart';
+import '../../features/supervision/presentation/providers/dashboard_provider.dart';
 import '../../features/supervision/presentation/providers/zone_provider.dart';
 import 'curved_nav_bar.dart';
 
@@ -19,35 +21,57 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   ProfileProvider? _profileProvider;
+  int? _loadedAssociationId;
 
   @override
   void initState() {
     super.initState();
     _profileProvider = context.read<ProfileProvider>();
+    _profileProvider?.addListener(_onProfileChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final user = _profileProvider?.user;
-      if (user?.associationId != null) {
-        context.read<ZoneProvider>().loadFromAssociation(user!.associationId!);
-      } else {
-        _profileProvider?.addListener(_onProfileLoaded);
-      }
+      _ensureProfileLoaded();
+      _syncZonesForCurrentUser();
     });
   }
 
-  void _onProfileLoaded() {
-    if (!mounted) return;
-    final user = _profileProvider?.user;
-    if (user?.associationId != null) {
-      context.read<ZoneProvider>().loadFromAssociation(user!.associationId!);
-      _profileProvider?.removeListener(_onProfileLoaded);
+  void _ensureProfileLoaded() {
+    final auth = context.read<AuthProvider>();
+    final profile = _profileProvider;
+    if (!auth.isAuthenticated || profile == null) return;
+    if (profile.user == null && !profile.isLoading) {
+      profile.loadProfile(clearExisting: false);
+      profile.loadUnreadCount();
     }
+  }
+
+  void _onProfileChanged() {
+    if (!mounted) return;
+    _syncZonesForCurrentUser();
+  }
+
+  void _syncZonesForCurrentUser() {
+    final user = _profileProvider?.user;
+    final associationId = user?.associationId;
+
+    if (associationId == null) {
+      _loadedAssociationId = null;
+      context.read<ZoneProvider>().reset();
+      context.read<DashboardProvider>().reset();
+      return;
+    }
+
+    if (associationId == _loadedAssociationId) return;
+
+    _loadedAssociationId = associationId;
+    context.read<DashboardProvider>().reset();
+    context.read<ZoneProvider>().loadFromAssociation(associationId);
   }
 
   @override
   void dispose() {
-    _profileProvider?.removeListener(_onProfileLoaded);
+    _profileProvider?.removeListener(_onProfileChanged);
     super.dispose();
   }
 

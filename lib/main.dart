@@ -56,7 +56,7 @@ class _MyAppState extends State<MyApp> {
           create: (_) => ProfileProvider(
             repository: ProfileRepositoryImpl(ProfileRemoteDatasource()),
             associationRepository: AssociationRepositoryImpl(AssociationRemoteDatasource()),
-          )..loadProfile(),
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => ZoneProvider(

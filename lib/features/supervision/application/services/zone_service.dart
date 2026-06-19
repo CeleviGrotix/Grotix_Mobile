@@ -104,4 +104,8 @@ class ZoneService {
       return false;
     }
   }
+
+  Future<List<int>> exportZoneReportPdf(int zoneId, DateTime from, DateTime to) async {
+    return _repo.exportZoneReportPdf(zoneId, from, to);
+  }
 }

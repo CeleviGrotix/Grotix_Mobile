@@ -53,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login({
+  Future<AuthSession?> login({
     required String email,
     required String password,
   }) async {
@@ -62,18 +62,26 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _session = await _loginUsecase.execute(email: email, password: password);
-      _status = AuthStatus.authenticated;
+      final session =
+          await _loginUsecase.execute(email: email, password: password);
       _isLoading = false;
       notifyListeners();
-      return true;
+      return session;
     } catch (e) {
       _errorMessage = e.toString();
       _status = AuthStatus.unauthenticated;
       _isLoading = false;
       notifyListeners();
-      return false;
+      return null;
     }
+  }
+
+  /// Activa la sesión tras cargar el perfil (evita redirección prematura).
+  void applySession(AuthSession session) {
+    _session = session;
+    _status = AuthStatus.authenticated;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   Future<void> logout() async {

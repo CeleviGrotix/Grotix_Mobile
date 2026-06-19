@@ -56,4 +56,26 @@ class ZoneRemoteDatasource {
     );
   }
 
+  Future<http.Response> exportZoneReportPdf(
+    int zoneId, {
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final token = await AuthLocalDatasource().getToken();
+    final uri = Uri.parse('$_base$_path/$zoneId/reports/export').replace(
+      queryParameters: {
+        'from': _formatDate(from),
+        'to': _formatDate(to),
+      },
+    );
+    return _client.get(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+
+  static String _formatDate(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
 }

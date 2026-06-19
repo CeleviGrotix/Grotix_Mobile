@@ -28,7 +28,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // _allowAuto ya no es estado local: ahora se deriva de Zone.irrigationMode
   // (ver el cómputo dentro de build()).
-  String _maxTime = '1 min';
+  int _maxTimeMinutes = 1;
 
   @override
   void initState() {
@@ -153,7 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     l10n: l10n,
                     allowAuto: allowAuto,
                     manualIrrigation: context.watch<IrrigationProvider>().isIrrigating,
-                    maxTime: _maxTime,
+                    maxTimeMinutes: _maxTimeMinutes,
                     onAutoChanged: (val) async {
                       final zoneId = dashboardProvider.selectedZone?.id;
                       if (zoneId == null) return;
@@ -189,17 +189,18 @@ class _DashboardPageState extends State<DashboardPage> {
                           }
                         }
 
-                        int duracion = int.tryParse(_maxTime.split(' ').first) ?? 1;
-
-                        final success = await context.read<IrrigationProvider>().startIrrigation(zoneId, durationMinutes: duracion);
+                        final success = await context.read<IrrigationProvider>().startIrrigation(
+                              zoneId,
+                              durationMinutes: _maxTimeMinutes,
+                            );
 
                         if (success && context.mounted) {
                           showModalBottomSheet(
                             context: context,
                             isDismissible: false,
                             builder: (context) => IrrigationActiveDialog(
-                              zoneId: zoneId,           // <-- nuevo
-                              durationMinutes: duracion,
+                              zoneId: zoneId,
+                              durationMinutes: _maxTimeMinutes,
                               onStop: () async {
                                 await context.read<IrrigationProvider>().stopIrrigation(zoneId);
                               },
@@ -210,7 +211,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         await context.read<IrrigationProvider>().stopIrrigation(zoneId);
                       }
                     },
-                    onTimeChanged: (v) => setState(() => _maxTime = v!),
+                    onTimeChanged: (minutes) =>
+                        setState(() => _maxTimeMinutes = minutes),
                   ),
                   DashboardTab.people => PeopleTabView(
                     l10n: l10n,

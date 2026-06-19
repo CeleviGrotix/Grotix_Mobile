@@ -35,7 +35,9 @@ class ZoneTelemetry {
   final double moistureAir;
   final double moistureSoil;
   final double temperature;
-  final double lightRadiation;
+  final double lightRadiation; // 0–1 bar (humedad/luz %); lux crudo si sensor en lux
+  final bool lightUsesPercentScale;
+  final double lightRaw; // valor API sin escalar
   final String moistureAirStatus;
   final String moistureSoilStatus;
   final String temperatureStatus;
@@ -48,6 +50,8 @@ class ZoneTelemetry {
     required this.moistureSoil,
     required this.temperature,
     required this.lightRadiation,
+    required this.lightUsesPercentScale,
+    required this.lightRaw,
     required this.moistureAirStatus,
     required this.moistureSoilStatus,
     required this.temperatureStatus,
@@ -70,6 +74,17 @@ class ZoneTelemetry {
     }
 
     return 'Critical';
+  }
+
+  static bool usesPercentScale(List<Threshold> thresholds) {
+    final t = thresholds.where((x) => x.sensorType == 'LIGHT_INTENSITY').firstOrNull;
+    return t == null || t.maxValue <= 100;
+  }
+
+  static double optimalLightDisplay(double optimalLight, bool percentScale) {
+    if (!percentScale) return optimalLight;
+    if (optimalLight <= 100) return optimalLight;
+    return (optimalLight / 1000 * 100).clamp(0, 100);
   }
 }
 
@@ -102,17 +117,25 @@ class DashboardProvider extends ChangeNotifier {
   List<Zone> get availableZones => _zoneProvider.zones;
 
   void _onZonesUpdated() {
-    if (_selectedZone == null && _zoneProvider.zones.isNotEmpty) {
-      selectZone(_zoneProvider.zones.first);
+    final zones = _zoneProvider.zones;
+
+    if (zones.isEmpty) {
+      _selectedZone = null;
+      _telemetry = null;
+      _hasNewDataAvailable = false;
+      _silentPoller?.cancel();
+      notifyListeners();
+      return;
     }
 
-    // Zone es inmutable: si la zona seleccionada fue actualizada en otro lado
-    // (ej. ZoneProvider.updateIrrigationMode hizo copyWith), la lista tiene
-    // una instancia NUEVA con el mismo id. Sincronizamos la referencia sin
-    // regenerar telemetría (eso solo debe pasar al cambiar de zona, no al
-    // refrescar un campo de la misma zona).
+    if (_selectedZone == null ||
+        !zones.any((z) => z.id == _selectedZone!.id)) {
+      selectZone(zones.first);
+      return;
+    }
+
     Zone? updated;
-    for (final z in _zoneProvider.zones) {
+    for (final z in zones) {
       if (z.id == _selectedZone!.id) {
         updated = z;
         break;
@@ -123,6 +146,15 @@ class DashboardProvider extends ChangeNotifier {
       _selectedZone = updated;
       notifyListeners();
     }
+  }
+
+  void reset() {
+    _selectedZone = null;
+    _telemetry = null;
+    _hasNewDataAvailable = false;
+    _isLoadingTelemetry = false;
+    _silentPoller?.cancel();
+    notifyListeners();
   }
 
   @override
@@ -201,12 +233,15 @@ class DashboardProvider extends ChangeNotifier {
           final light = (rawData['lightIntensity'] as num).toDouble();
           final timestamp = DateTime.parse(rawData['timestamp']).toLocal();
           final deviceId = rawData['deviceId'].toString();
+          final lightPercent = ZoneTelemetry.usesPercentScale(thresholds);
 
           _telemetry = ZoneTelemetry(
             temperature: temp,
             moistureAir: humAir / 100.0,
             moistureSoil: humSoil / 100.0,
-            lightRadiation: (light / 100000.0).clamp(0.0, 1.0),
+            lightRaw: light,
+            lightUsesPercentScale: lightPercent,
+            lightRadiation: lightPercent ? light / 100.0 : light,
             temperatureStatus: ZoneTelemetry.calculateStatus(temp, 'AIR_TEMPERATURE', thresholds),
             moistureAirStatus: ZoneTelemetry.calculateStatus(humAir, 'AIR_HUMIDITY', thresholds),
             moistureSoilStatus: ZoneTelemetry.calculateStatus(humSoil, 'SOIL_MOISTURE', thresholds),
