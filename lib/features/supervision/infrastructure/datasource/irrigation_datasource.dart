@@ -8,7 +8,6 @@ class IrrigationDatasource {
   final http.Client _client;
   final AuthLocalDatasource _authLocal;
 
-  // Así lo puedes instanciar vacío en el main.dart y él mismo se configura
   IrrigationDatasource({http.Client? client, AuthLocalDatasource? authLocal})
       : _client = client ?? http.Client(),
         _authLocal = authLocal ?? AuthLocalDatasource();
@@ -24,7 +23,6 @@ class IrrigationDatasource {
   Future<http.Response> startManual(int zoneId, double? volume, int? duration) async {
     final url = Uri.parse('$_base/api/v1/irrigation/start/$zoneId');
 
-    // Quitamos los 'if'. Si es nulo, que viaje como 'null' explícito en el JSON.
     final body = jsonEncode({
       "volumeLiters": volume,
       "durationMinutes": duration,
@@ -40,5 +38,13 @@ class IrrigationDatasource {
     });
 
     return await _client.post(url, headers: await _headers(), body: body);
+  }
+
+  /// Consulta los ciclos de riego activos para una zona específica.
+  /// Reusa GET /irrigation/active?zoneId={zoneId}, el mismo endpoint
+  /// que ya consulta el script de edge para tomar decisiones.
+  Future<http.Response> getActive(int zoneId) async {
+    final url = Uri.parse('$_base/api/v1/irrigation/active?zoneId=$zoneId');
+    return await _client.get(url, headers: await _headers());
   }
 }

@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:grotix/common/theme/app_colors.dart';
+import 'package:grotix/features/supervision/presentation/providers/irrigation_provider.dart';
 
 class IrrigationActiveDialog extends StatefulWidget {
+  final int zoneId;
   final int durationMinutes;
   final VoidCallback onStop;
 
   const IrrigationActiveDialog({
     super.key,
+    required this.zoneId,
     required this.durationMinutes,
     required this.onStop,
   });
@@ -20,17 +24,19 @@ class IrrigationActiveDialog extends StatefulWidget {
 class _IrrigationActiveDialogState extends State<IrrigationActiveDialog> with SingleTickerProviderStateMixin {
   late int _secondsRemaining;
   Timer? _timer;
+  Timer? _statusPoller;
   late AnimationController _waveController;
+  bool _checkingStatus = false;
 
   @override
   void initState() {
     super.initState();
     _secondsRemaining = widget.durationMinutes * 60;
 
-    // Animación continua para simular agua fluyendo
     _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
 
     _startTimer();
+    _startStatusPolling();
   }
 
   void _startTimer() {
@@ -38,15 +44,43 @@ class _IrrigationActiveDialogState extends State<IrrigationActiveDialog> with Si
       if (_secondsRemaining > 0) {
         setState(() => _secondsRemaining--);
       } else {
-        _timer?.cancel();
-        Navigator.of(context).pop(); // Cierra el modal cuando termina
+        _closeDialog();
       }
     });
+  }
+
+  /// Consulta cada 4s si el backend todavía reporta un ciclo activo.
+  /// Si el edge ya cortó el riego (fail-safe, stop remoto, lo que sea),
+  /// el modal se cierra solo en vez de esperar al countdown local.
+  void _startStatusPolling() {
+    _statusPoller = Timer.periodic(const Duration(seconds: 4), (timer) async {
+      if (_checkingStatus) return; // evita superposición si una consulta tarda
+      _checkingStatus = true;
+      try {
+        final stillActive = await context.read<IrrigationProvider>().hasActiveCycle(widget.zoneId);
+        if (!stillActive && mounted) {
+          _closeDialog();
+        }
+      } catch (_) {
+        // Fallo de red puntual: no cerramos el modal por una consulta
+        // fallida aislada, esperamos al siguiente intento.
+      } finally {
+        _checkingStatus = false;
+      }
+    });
+  }
+
+  void _closeDialog() {
+    if (!mounted) return;
+    _timer?.cancel();
+    _statusPoller?.cancel();
+    Navigator.of(context).pop();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _statusPoller?.cancel();
     _waveController.dispose();
     super.dispose();
   }
@@ -62,7 +96,7 @@ class _IrrigationActiveDialogState extends State<IrrigationActiveDialog> with Si
     return Container(
       height: 350,
       decoration: const BoxDecoration(
-        color: AppColors.darkCardBg, // Usa el color oscuro de tus tarjetas
+        color: AppColors.darkCardBg,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -78,8 +112,6 @@ class _IrrigationActiveDialogState extends State<IrrigationActiveDialog> with Si
             style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13),
           ),
           const SizedBox(height: 30),
-
-          // Círculo animado con el temporizador
           Stack(
             alignment: Alignment.center,
             children: [
@@ -110,14 +142,11 @@ class _IrrigationActiveDialogState extends State<IrrigationActiveDialog> with Si
               ),
             ],
           ),
-
           const SizedBox(height: 40),
-
-          // Botón de Parada de Emergencia (Abortar)
           ElevatedButton.icon(
             onPressed: () {
               widget.onStop();
-              Navigator.of(context).pop();
+              _closeDialog();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent.withOpacity(0.2),

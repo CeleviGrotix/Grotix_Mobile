@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../application/services/irrigation_service.dart';
 
@@ -9,7 +10,6 @@ class IrrigationProvider extends ChangeNotifier {
 
   IrrigationProvider(this._irrigationService);
 
-  // Modificado para aceptar duración configurable
   Future<bool> startIrrigation(int zoneId, {int durationMinutes = 5}) async {
     _isIrrigating = true;
     notifyListeners();
@@ -26,12 +26,9 @@ class IrrigationProvider extends ChangeNotifier {
     return success;
   }
 
-  // NUEVO: Método para detener el riego
   Future<bool> stopIrrigation(int zoneId, {String reason = "MANUAL_CANCEL"}) async {
-    // Llamamos al servicio real
     final success = await _irrigationService.stopManualIrrigation(zoneId, reason: reason);
 
-    // Si la llamada fue exitosa, limpiamos el estado de irrigación
     if (success) {
       _isIrrigating = false;
       notifyListeners();
@@ -40,9 +37,16 @@ class IrrigationProvider extends ChangeNotifier {
     return success;
   }
 
-  // Para usar si la ventana modal se cierra sola por tiempo
   void clearIrrigatingState() {
     _isIrrigating = false;
     notifyListeners();
+  }
+
+  /// Consulta si sigue habiendo un ciclo activo para la zona en el backend.
+  /// Lo usa el modal para cerrarse solo si el edge (fail-safe por tiempo,
+  /// stop remoto, etc.) cortó el riego antes de que termine el countdown
+  /// visual local — sin esto, el modal y la realidad pueden desincronizarse.
+  Future<bool> hasActiveCycle(int zoneId) async {
+    return await _irrigationService.hasActiveCycle(zoneId);
   }
 }

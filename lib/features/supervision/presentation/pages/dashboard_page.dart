@@ -198,6 +198,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             context: context,
                             isDismissible: false,
                             builder: (context) => IrrigationActiveDialog(
+                              zoneId: zoneId,           // <-- nuevo
                               durationMinutes: duracion,
                               onStop: () async {
                                 await context.read<IrrigationProvider>().stopIrrigation(zoneId);
