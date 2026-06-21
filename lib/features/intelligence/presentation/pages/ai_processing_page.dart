@@ -189,7 +189,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                 const SizedBox(height: 20),
               ],
 
-              // ── Botón OK ──────────────────────────────────────────────
+              // ── Botón ──────────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -317,7 +317,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   }
 }
 
-// ── Widgets de apoyo ──────────────────────────────────────────────────────────
+// ── Widgets ──────────────────────────────────────────────────────────
 
 class _ResultRow extends StatelessWidget {
   final FaIconData icon;
