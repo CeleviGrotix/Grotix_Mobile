@@ -164,7 +164,7 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  // Helpers de traducción (iguales a la versión anterior)
+  // Helpers de traducción
   String _getLocalizedStr(String key, AppLocalizations l10n) {
     return switch (key) {
       'notifCriticalTitle' => l10n.notifCriticalTitle,
