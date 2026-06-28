@@ -1,3 +1,4 @@
+import '../../../../supervision/domain/entities/contract.dart';
 import '../entities/association.dart';
 
 abstract class AssociationRepository {
@@ -22,4 +23,6 @@ abstract class AssociationRepository {
     String? name,
     String? email,
   });
+
+  Future<List<Contract>> getContracts();
 }

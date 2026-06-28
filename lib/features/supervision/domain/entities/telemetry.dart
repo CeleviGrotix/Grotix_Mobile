@@ -1,12 +1,12 @@
-class Threshold {
-  final String sensorType; // "SOIL_MOISTURE", "AIR_TEMPERATURE", etc.
+class GrotixThreshold {
+  final String sensorType;
   final double minValue;
   final double maxValue;
 
-  Threshold({required this.sensorType, required this.minValue, required this.maxValue});
+  GrotixThreshold({required this.sensorType, required this.minValue, required this.maxValue});
 
-  factory Threshold.fromMap(Map<String, dynamic> map) {
-    return Threshold(
+  factory GrotixThreshold.fromMap(Map<String, dynamic> map) {
+    return GrotixThreshold(
       sensorType: map['sensorType'] ?? '',
       minValue: (map['minValue'] as num?)?.toDouble() ?? 0.0,
       maxValue: (map['maxValue'] as num?)?.toDouble() ?? 0.0,
@@ -23,16 +23,17 @@ class TelemetrySensor {
 class TelemetryUIModel {
   final DateTime updatedAt;
   final double temperature;
-  final double moistureAir; // 0.0 a 1.0
-  final double moistureSoil; // 0.0 a 1.0
-  final double lightRadiation; // 0.0 a 1.0
-
+  final double moistureAir;
+  final double moistureSoil;
+  final double lightRadiation;
+  final double lightRaw;
+  final bool lightUsesPercentScale;
   final String temperatureStatus;
   final String moistureAirStatus;
   final String moistureSoilStatus;
   final String lightStatus;
-
   final List<TelemetrySensor> sensors;
+  final List<GrotixThreshold> thresholds;
 
   TelemetryUIModel({
     required this.updatedAt,
@@ -40,26 +41,34 @@ class TelemetryUIModel {
     required this.moistureAir,
     required this.moistureSoil,
     required this.lightRadiation,
+    required this.lightRaw,
+    required this.lightUsesPercentScale,
     required this.temperatureStatus,
     required this.moistureAirStatus,
     required this.moistureSoilStatus,
     required this.lightStatus,
     required this.sensors,
+    required this.thresholds,
   });
 
-  // Helper mágico que compara el valor con los thresholds de Azure
-  static String calculateStatus(double value, String type, List<Threshold> thresholds) {
+  static String calculateStatus(double value, String type, List<GrotixThreshold> thresholds) {
+    if (thresholds.isEmpty) return 'Average';
     final t = thresholds.where((x) => x.sensorType == type).firstOrNull;
     if (t == null) return 'Unknown';
-
     if (value >= t.minValue && value <= t.maxValue) return 'Optimal';
-
-    // Si está fuera del rango pero cerca (ej. 15% de margen), es Average
     final margin = (t.maxValue - t.minValue) * 0.15;
-    if (value >= (t.minValue - margin) && value <= (t.maxValue + margin)) {
-      return 'Average';
-    }
+    if (value >= (t.minValue - margin) && value <= (t.maxValue + margin)) return 'Average';
+    return 'Critical';
+  }
 
-    return 'Critical'; // Muy fuera de rango
+  static bool usesPercentScale(List<GrotixThreshold> thresholds) {
+    final t = thresholds.where((x) => x.sensorType == 'LIGHT_INTENSITY').firstOrNull;
+    return t == null || t.maxValue <= 100;
+  }
+
+  static double optimalLightDisplay(double optimalLight, bool percentScale) {
+    if (!percentScale) return optimalLight;
+    if (optimalLight <= 100) return optimalLight;
+    return (optimalLight / 1000 * 100).clamp(0, 100);
   }
 }

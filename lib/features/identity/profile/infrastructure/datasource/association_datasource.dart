@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:grotix/common/config/env.dart';
 
+import '../../../../supervision/domain/entities/contract.dart';
 import '../../../auth/infrastructure/datasource/auth_local_datasource.dart';
 import '../../domain/entities/association.dart';
 
@@ -137,4 +138,21 @@ class AssociationRemoteDatasource {
       return Exception('Request failed (${response.statusCode})');
     }
   }
+
+
+  Future<List<Contract>> getContracts() async {
+    final uri = Uri.parse('$_base/api/v1/contracts');
+    final headers = await _headers();
+
+    debugPrint('🔵 [CONTRACT] GET $uri');
+    final response = await _client.get(uri, headers: headers);
+    debugPrint('🟣 [CONTRACT] ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final list = jsonDecode(response.body) as List<dynamic>;
+      return list.map((e) => Contract.fromMap(e as Map<String, dynamic>)).toList();
+    }
+    throw _error('getContracts', response);
+  }
 }
+

@@ -147,7 +147,8 @@
   "commonName": "Nombre común",
   "scientificName": "Nombre científico",
   "optimalTemp": "Temperatura óptima",
-  "optimalHum": "Humedad óptima",
+  "optimalHumAir": "Humedad del aire óptima",
+  "optimalHumSoil": "Humedad de suelo óptima",
   "optimalLight": "Luz óptima",
   "maxStressTime": "Tiempo máx. estrés",
   "imageUrl": "URL de Imagen",
@@ -192,5 +193,14 @@
   "errorTitle": "Error",
   "aiConnectionError": "No se pudo conectar con el servidor de IA. Verifica que el servidor Python esté corriendo.",
   "okButton": "OK",
-  "noZonesAvailable": "No hay zonas disponibles"
+  "noZonesAvailable": "No hay zonas disponibles",
+
+  "mySubscription": "MI SUSCRIPCIÓN",
+  "planName": "Plan Grotix Pro",
+  "subscriptionActive": "ACTIVO",
+  "subscriptionSuspended": "SUSPENDIDO",
+  "renewalDate": "Renovación:",
+  "allowedZones": "Zonas Permitidas:",
+  "microcontrollers": "Microcontroladores:",
+  "noActiveSubscription": "No se encontró una suscripción activa."
 }

@@ -6,11 +6,13 @@ import 'package:grotix/features/supervision/domain/entities/zone.dart';
 import 'package:grotix/features/supervision/presentation/providers/zone_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../providers/dashboard_provider.dart';
 import '../widgets/irrigation_active_dialog.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../identity/auth/presentation/providers/auth_provider.dart';
 import 'package:grotix/features/supervision/presentation/providers/irrigation_provider.dart';
+import 'package:grotix/features/supervision/infrastructure/datasource/telemetry_datasource.dart';
 
 class ZoneDetailPage extends StatefulWidget {
   final Zone zone;
@@ -29,17 +31,68 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
   late final TextEditingController _latController;
   late final TextEditingController _lngController;
   late final TextEditingController _imageController;
+  late final TextEditingController _minTempCtrl;
+  late final TextEditingController _maxTempCtrl;
+  late final TextEditingController _minAirHumCtrl;
+  late final TextEditingController _maxAirHumCtrl;
+  late final TextEditingController _minSoilHumCtrl;
+  late final TextEditingController _maxSoilHumCtrl;
+  late final TextEditingController _minLightCtrl;
+  late final TextEditingController _maxLightCtrl;
+
+  bool _isLoadingThresholds = true;
 
   @override
   void initState() {
     super.initState();
     _selectedPhase = widget.zone.phase;
-    _latController = TextEditingController(
-        text: widget.zone.latitude?.toString() ?? '');
-    _lngController = TextEditingController(
-        text: widget.zone.longitude?.toString() ?? '');
-    _imageController = TextEditingController(
-        text: widget.zone.imageUrl ?? '');
+    _latController = TextEditingController(text: widget.zone.latitude?.toString() ?? '');
+    _lngController = TextEditingController(text: widget.zone.longitude?.toString() ?? '');
+    _imageController = TextEditingController(text: widget.zone.imageUrl ?? '');
+
+    final crop = widget.zone.crop;
+    _minTempCtrl = TextEditingController(text: crop != null ? (crop.optimalTemperature - 5).round().toString() : '');
+    _maxTempCtrl = TextEditingController(text: crop != null ? (crop.optimalTemperature + 5).round().toString() : '');
+    _minAirHumCtrl = TextEditingController(text: crop != null ? (crop.optimalHumidityAir - 10).round().toString() : '');
+    _maxAirHumCtrl = TextEditingController(text: crop != null ? (crop.optimalHumidityAir + 10).round().toString() : '');
+    _minSoilHumCtrl = TextEditingController(text: crop != null ? (crop.optimalHumiditySoil - 10).round().toString() : '');
+    _maxSoilHumCtrl = TextEditingController(text: crop != null ? (crop.optimalHumiditySoil + 10).round().toString() : '');
+    _minLightCtrl = TextEditingController(text: crop != null ? (crop.optimalLight - 10).round().toString() : '');
+    _maxLightCtrl = TextEditingController(text: crop != null ? (crop.optimalLight + 10).round().toString() : '');
+
+    _loadThresholds(); // <- Llamamos al backend al abrir la pantalla
+  }
+
+  Future<void> _loadThresholds() async {
+    try {
+      final thresholds = await TelemetryDatasource().getThresholds(widget.zone.id);
+
+
+      final crop = widget.zone.crop;
+
+      // Función auxiliar para llenar los inputs con la BD o usar el default del cultivo
+      void setCtrl(TextEditingController minC, TextEditingController maxC, String type, double? cropOpt, double margin) {
+        final t = thresholds.where((x) => x.sensorType == type).firstOrNull;
+        if (t != null && (t.minValue > 0 || t.maxValue > 0)) {
+          // Si el backend ya tiene un umbral personalizado, lo usamos
+          minC.text = t.minValue.toString();
+          maxC.text = t.maxValue.toString();
+        } else if (cropOpt != null) {
+          // Si no, sugerimos uno en base al cultivo
+          minC.text = (cropOpt - margin).toString();
+          maxC.text = (cropOpt + margin).toString();
+        }
+      }
+
+      setCtrl(_minTempCtrl, _maxTempCtrl, 'AIR_TEMPERATURE', crop?.optimalTemperature, 5);
+      setCtrl(_minAirHumCtrl, _maxAirHumCtrl, 'AIR_HUMIDITY', crop?.optimalHumidityAir, 10);
+      setCtrl(_minSoilHumCtrl, _maxSoilHumCtrl, 'SOIL_MOISTURE', crop?.optimalHumiditySoil, 10);
+      setCtrl(_minLightCtrl, _maxLightCtrl, 'LIGHT_INTENSITY', crop?.optimalLight, 10);
+    } catch (e) {
+      debugPrint("Error cargando umbrales: $e");
+    } finally {
+      if (mounted) setState(() => _isLoadingThresholds = false);
+    }
   }
 
   @override
@@ -47,6 +100,14 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
     _latController.dispose();
     _lngController.dispose();
     _imageController.dispose();
+    _minTempCtrl.dispose();
+    _maxTempCtrl.dispose();
+    _minAirHumCtrl.dispose();
+    _maxAirHumCtrl.dispose();
+    _minSoilHumCtrl.dispose();
+    _maxSoilHumCtrl.dispose();
+    _minLightCtrl.dispose();
+    _maxLightCtrl.dispose();
     super.dispose();
   }
 
@@ -72,44 +133,88 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
     setState(() => _isSaving = true);
     final l10n = AppLocalizations.of(context)!;
 
-    final success = await context.read<ZoneProvider>().updateZonePhase(
-      widget.zone.id,
-      _selectedPhase,
-    );
+    try {
+      // 1. Guardar Fase
+      final phaseSuccess = await context.read<ZoneProvider>().updateZonePhase(
+        widget.zone.id,
+        _selectedPhase,
+      );
 
-    // Si hay otros campos editados (lat, lng, image) también los mandamos
-    if (success) {
+      // 2. Guardar otros campos (Lat, Lng, Image)
       final lat = double.tryParse(_latController.text.trim());
       final lng = double.tryParse(_lngController.text.trim());
       final img = _imageController.text.trim();
 
-      final hasOtherChanges = lat != widget.zone.latitude ||
-          lng != widget.zone.longitude ||
-          img != (widget.zone.imageUrl ?? '');
+      // Forzamos el update de campos para asegurarnos
+      await context.read<ZoneProvider>().updateZoneFields(
+        widget.zone.id,
+        latitude: lat,
+        longitude: lng,
+        imageUrl: img.isEmpty ? null : img,
+      );
 
-      if (hasOtherChanges) {
-        await context.read<ZoneProvider>().updateZoneFields(
-          widget.zone.id,
-          latitude: lat,
-          longitude: lng,
-          imageUrl: img.isEmpty ? null : img,
+      // 3. Guardar Umbrales
+      final dashboardProv = context.read<DashboardProvider>();
+      List<Map<String, dynamic>> thresholdUpdates = [];
+
+      bool hasValidationErrors = false;
+
+      void addIfValid(String type, String minStr, String maxStr, String labelName) {
+        final minV = double.tryParse(minStr.trim());
+        final maxV = double.tryParse(maxStr.trim());
+
+        if (minV != null && maxV != null) {
+          // VALIDACIÓN: El mínimo no puede ser mayor que el máximo
+          if (minV > maxV) {
+            hasValidationErrors = true;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error en $labelName: El mínimo no puede ser mayor al máximo.'),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+            return; // Sale de la función auxiliar, no lo añade a la lista
+          }
+
+          thresholdUpdates.add({
+            "SensorType": type,
+            "MinValue": minV,
+            "MaxValue": maxV
+          });
+        }
+      }
+
+      addIfValid("AIR_TEMPERATURE", _minTempCtrl.text, _maxTempCtrl.text, "Temperatura");
+      addIfValid("AIR_HUMIDITY", _minAirHumCtrl.text, _maxAirHumCtrl.text, "Humedad del Aire");
+      addIfValid("SOIL_MOISTURE", _minSoilHumCtrl.text, _maxSoilHumCtrl.text, "Humedad del Suelo");
+      addIfValid("LIGHT_INTENSITY", _minLightCtrl.text, _maxLightCtrl.text, "Luz");
+
+      // Si hubo errores, detenemos el guardado
+      if (hasValidationErrors) {
+        setState(() => _isSaving = false);
+        return;
+      }
+
+      if (thresholdUpdates.isNotEmpty) {
+        // Aquí capturaremos si esto falla
+        await dashboardProv.updateZoneThresholds(widget.zone.id, thresholdUpdates);
+      }
+
+      setState(() => _isEditing = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.changesSaved)));
+
+    } catch (e) {
+      debugPrint("💥 ERROR AL GUARDAR: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al guardar: $e"), backgroundColor: Colors.red),
         );
       }
-    }
-
-    setState(() {
-      _isSaving = false;
-      if (success) _isEditing = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? l10n.zoneUpdated : l10n.zoneUpdateFailed),
-          backgroundColor: success ? AppColors.greenEmerald : Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    } finally {
+      setState(() => _isSaving = false);
     }
   }
 
@@ -194,10 +299,61 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
                   _DetailRow(icon: FontAwesomeIcons.microscope, label: l10n.scientificName, value: crop.scientificName, italic: true),
                   const Divider(color: Colors.white12, height: 20),
                   _DetailRow(icon: FontAwesomeIcons.temperatureHalf, label: l10n.optimalTemp, value: '${crop.optimalTemperature}°C'),
-                  _DetailRow(icon: FontAwesomeIcons.droplet, label: l10n.optimalHum, value: '${crop.optimalHumidityAir}%'),
-                  _DetailRow(icon: FontAwesomeIcons.droplet, label: l10n.optimalHum, value: '${crop.optimalHumiditySoil}%'),
-                  _DetailRow(icon: FontAwesomeIcons.sun, label: l10n.optimalLight, value: '${crop.optimalLight} lux'),
+                  _DetailRow(icon: FontAwesomeIcons.wind, label: l10n.optimalHumAir, value: '${crop.optimalHumidityAir}%'),
+                  _DetailRow(icon: FontAwesomeIcons.droplet, label: l10n.optimalHumSoil, value: '${crop.optimalHumiditySoil}%'),
+                  _DetailRow(icon: FontAwesomeIcons.sun, label: l10n.optimalLight, value: '${crop.optimalLight}%'),
                   _DetailRow(icon: FontAwesomeIcons.clock, label: l10n.maxStressTime, value: '${crop.maxStressTime} min'),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+            if (crop != null && _isEditing) ...[
+              _SectionHeader(label: 'Critical Levels (Overrides)'),
+              const SizedBox(height: 12),
+              _InfoCard(
+                children: [
+                  const Text('Temperature (°C)', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowDown, label: 'Min', controller: _minTempCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowUp, label: 'Max', controller: _maxTempCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white12, height: 24),
+
+                  const Text('Air Humidity (%)', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowDown, label: 'Min', controller: _minAirHumCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowUp, label: 'Max', controller: _maxAirHumCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white12, height: 24),
+
+                  const Text('Soil Moisture (%)', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowDown, label: 'Min', controller: _minSoilHumCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowUp, label: 'Max', controller: _maxSoilHumCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white12, height: 24),
+
+                  const Text('Light / Radiation (%)', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowDown, label: 'Min', controller: _minLightCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 8),
+                      Expanded(child: _EditableDetailRow(icon: FontAwesomeIcons.arrowUp, label: 'Max', controller: _maxLightCtrl, value: '', enabled: true, keyboardType: TextInputType.number)),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

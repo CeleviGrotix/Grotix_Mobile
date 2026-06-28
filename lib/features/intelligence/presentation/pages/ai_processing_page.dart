@@ -22,7 +22,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final Set<int> _refreshingIds = {};
-  final double _aiTrustLevel = 0.80;
+  final double _aiTrustLevel = 1.00;
 
   @override
   void dispose() {

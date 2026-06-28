@@ -854,11 +854,17 @@ abstract class AppLocalizations {
   /// **'Optimal temperature'**
   String get optimalTemp;
 
-  /// No description provided for @optimalHum.
+  /// No description provided for @optimalHumAir.
   ///
   /// In en, this message translates to:
-  /// **'Optimal humidity'**
-  String get optimalHum;
+  /// **'Optimal air humidity'**
+  String get optimalHumAir;
+
+  /// No description provided for @optimalHumSoil.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal soil humidity'**
+  String get optimalHumSoil;
 
   /// No description provided for @optimalLight.
   ///
@@ -1039,6 +1045,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No zones available'**
   String get noZonesAvailable;
+
+  /// No description provided for @mySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'MY SUBSCRIPTION'**
+  String get mySubscription;
+
+  /// No description provided for @planName.
+  ///
+  /// In en, this message translates to:
+  /// **'Grotix Pro Plan'**
+  String get planName;
+
+  /// No description provided for @subscriptionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get subscriptionActive;
+
+  /// No description provided for @subscriptionSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'SUSPENDED'**
+  String get subscriptionSuspended;
+
+  /// No description provided for @renewalDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal:'**
+  String get renewalDate;
+
+  /// No description provided for @allowedZones.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Zones:'**
+  String get allowedZones;
+
+  /// No description provided for @microcontrollers.
+  ///
+  /// In en, this message translates to:
+  /// **'Microcontrollers:'**
+  String get microcontrollers;
+
+  /// No description provided for @noActiveSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'No active subscription found.'**
+  String get noActiveSubscription;
 }
 
 class _AppLocalizationsDelegate

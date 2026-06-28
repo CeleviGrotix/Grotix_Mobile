@@ -7,10 +7,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:grotix/common/theme/app_colors.dart';
 
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../supervision/domain/entities/contract.dart';
 import '../../domain/entities/association.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/association_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../supervision/domain/entities/contract.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ProfileRepository _repository;
@@ -25,6 +27,8 @@ class ProfileProvider extends ChangeNotifier {
   // ── Estado ───────────────────────────────────────────────────────────────
 
   Association? _association;
+  Contract? _contract;
+  Contract? get contract => _contract;
   Association? get association => _association;
   String get associationName => _association?.name ?? '—';
   UserProfile? _user;
@@ -85,12 +89,19 @@ class ProfileProvider extends ChangeNotifier {
   Future<void> _loadAssociation() async {
     try {
       _association = await _associationRepository.getMyAssociation();
+
+      try {
+        final contracts = await _associationRepository.getContracts();
+        _contract = contracts.isNotEmpty ? contracts.first : null;
+      } catch (e) {
+        debugPrint('🔴 [ProfileProvider] No se pudo cargar el contrato: $e');
+      }
+
       notifyListeners();
     } catch (e) {
       debugPrint('🔴 [ProfileProvider] loadAssociation error: $e');
     }
   }
-
   void _fillControllers() {
     if (_user == null) return;
     nameController.text = _user!.name ?? '';

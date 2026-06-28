@@ -4,13 +4,21 @@ import 'package:grotix/common/theme/app_colors.dart';
 import 'package:grotix/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import 'package:grotix/features/supervision/domain/entities/telemetry.dart';
 import '../providers/dashboard_provider.dart';
 
 class MainTabView extends StatelessWidget {
   final AppLocalizations l10n;
 
   const MainTabView({super.key, required this.l10n});
+
+  String _getOptimalText(String sensorType, double? baseValue, List<GrotixThreshold> thresholds) {
+    final t = thresholds.where((x) => x.sensorType == sensorType).firstOrNull;
+    if (t != null && (t.minValue > 0 || t.maxValue > 0)) {
+      return '${t.minValue.round()} - ${t.maxValue.round()}';
+    }
+    return baseValue != null ? baseValue.round().toString() : 'N/A';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +230,7 @@ class MainTabView extends StatelessWidget {
                   ),
                   if (crop != null)
                     Text(
-                      '${l10n.optimal}: ${crop.optimalHumidityAir.round()}%',
+                      '${l10n.optimal}: ${_getOptimalText('AIR_HUMIDITY', crop.optimalHumidityAir, telemetry.thresholds)}%',
                       style: TextStyle(
                           color: AppColors.white.withOpacity(0.4),
                           fontSize: 12),
@@ -283,7 +291,7 @@ class MainTabView extends StatelessWidget {
                   ),
                   if (crop != null)
                     Text(
-                      '${l10n.optimal}: ${crop.optimalHumiditySoil.round()}%',
+                      '${l10n.optimal}: ${_getOptimalText('SOIL_MOISTURE', crop.optimalHumiditySoil, telemetry.thresholds)}%',
                       style: TextStyle(
                           color: AppColors.white.withOpacity(0.4),
                           fontSize: 12),
@@ -295,27 +303,9 @@ class MainTabView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // ── Radiación (LDR: % como humedad; BH1750: lux) ──
+// ── Radiación (Forzado a Porcentaje) ──
         _buildSectionTitle(l10n.lightRadiation),
-        Builder(
-          builder: (context) {
-            final percentScale = telemetry.lightUsesPercentScale;
-            final lightValue = telemetry.lightRaw;
-            final barValue = percentScale
-                ? telemetry.lightRadiation.clamp(0.0, 1.0)
-                : (telemetry.lightRadiation /
-                        (crop != null && crop.optimalLight > 0
-                            ? crop.optimalLight * 1.3
-                            : 100000.0))
-                    .clamp(0.0, 1.0);
-            final valueLabel = percentScale
-                ? '${lightValue.round()}%'
-                : '${lightValue.round()} lux';
-            final optimalLabel = crop != null
-                ? '${l10n.optimal}: ${ZoneTelemetry.optimalLightDisplay(crop.optimalLight, percentScale).round()}${percentScale ? '%' : ' lux'}'
-                : null;
-
-            return Container(
+        Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
               color: AppColors.darkCardBg,
@@ -342,7 +332,7 @@ class MainTabView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                valueLabel,
+                '${telemetry.lightRaw.round()}%',
                 style: const TextStyle(
                     color: AppColors.white,
                     fontSize: 22,
@@ -351,17 +341,14 @@ class MainTabView extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Text(
-                    percentScale ? '0%' : '0',
-                    style: const TextStyle(color: AppColors.white, fontSize: 12),
-                  ),
+                  const Text('0%', style: TextStyle(color: AppColors.white, fontSize: 12)),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: barValue,
+                          value: (telemetry.lightRaw / 100.0).clamp(0.0, 1.0),
                           minHeight: 14,
                           color: _statusColor(telemetry.lightStatus),
                           backgroundColor: Colors.white10,
@@ -369,17 +356,14 @@ class MainTabView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    percentScale ? '100%' : '${(crop != null && crop.optimalLight > 0 ? crop.optimalLight * 1.3 : 100000).round()}',
-                    style: const TextStyle(color: AppColors.white, fontSize: 12),
-                  ),
+                  const Text('100%', style: TextStyle(color: AppColors.white, fontSize: 12)),
                 ],
               ),
-              if (optimalLabel != null)
+              if (crop != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    optimalLabel,
+                    '${l10n.optimal}: ${_getOptimalText('LIGHT_INTENSITY', crop.optimalLight > 100 ? 100 : crop.optimalLight, telemetry.thresholds)}%',
                     style: TextStyle(
                         color: AppColors.white.withOpacity(0.4),
                         fontSize: 12),
@@ -387,8 +371,6 @@ class MainTabView extends StatelessWidget {
                 ),
             ],
           ),
-        );
-          },
         ),
         const SizedBox(height: 20),
 
@@ -421,7 +403,7 @@ class MainTabView extends StatelessWidget {
                   ),
                   if (crop != null)
                     Text(
-                      '${l10n.optimal}: ${crop.optimalTemperature.round()}°C',
+                      '${l10n.optimal}: ${_getOptimalText('AIR_TEMPERATURE', crop.optimalTemperature, telemetry.thresholds)}°C',
                       style: TextStyle(
                           color: AppColors.white.withOpacity(0.4),
                           fontSize: 12),
