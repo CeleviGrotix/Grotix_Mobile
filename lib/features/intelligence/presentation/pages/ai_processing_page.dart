@@ -22,7 +22,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final Set<int> _refreshingIds = {};
-  final double _aiTrustLevel = 0.80;
+  final double _aiTrustLevel = 1.00;
 
   @override
   void dispose() {
@@ -240,7 +240,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
                 const SizedBox(height: 20),
               ],
 
-              // ── Botón OK ──────────────────────────────────────────────
+              // ── Botón ──────────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -367,7 +367,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
   }
 }
 
-// ── Widgets de apoyo ──────────────────────────────────────────────────────────
+// ── Widgets ──────────────────────────────────────────────────────────
 
 class _ResultRow extends StatelessWidget {
   final FaIconData icon;

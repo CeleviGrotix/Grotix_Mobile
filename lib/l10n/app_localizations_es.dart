@@ -405,7 +405,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get optimalTemp => 'Temperatura óptima';
 
   @override
-  String get optimalHum => 'Humedad óptima';
+  String get optimalHumAir => 'Humedad del aire óptima';
+
+  @override
+  String get optimalHumSoil => 'Humedad de suelo óptima';
 
   @override
   String get optimalLight => 'Luz óptima';
@@ -504,4 +507,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noZonesAvailable => 'No hay zonas disponibles';
+
+  @override
+  String get mySubscription => 'MI SUSCRIPCIÓN';
+
+  @override
+  String get planName => 'Plan Grotix Pro';
+
+  @override
+  String get subscriptionActive => 'ACTIVO';
+
+  @override
+  String get subscriptionSuspended => 'SUSPENDIDO';
+
+  @override
+  String get renewalDate => 'Renovación:';
+
+  @override
+  String get allowedZones => 'Zonas Permitidas:';
+
+  @override
+  String get microcontrollers => 'Microcontroladores:';
+
+  @override
+  String get noActiveSubscription => 'No se encontró una suscripción activa.';
 }

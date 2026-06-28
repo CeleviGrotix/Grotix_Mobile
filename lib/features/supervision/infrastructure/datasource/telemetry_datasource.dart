@@ -17,12 +17,12 @@ class TelemetryDatasource {
   }
 
   // 1. Traer los umbrales
-  Future<List<Threshold>> getThresholds(int zoneId) async {
+  Future<List<GrotixThreshold>> getThresholds(int zoneId) async {
     final uri = Uri.parse('$_base/api/v1/telemetry/zones/$zoneId/thresholds');
     final res = await _client.get(uri, headers: await _headers());
     if (res.statusCode == 200) {
       final List raw = jsonDecode(res.body);
-      return raw.map((e) => Threshold.fromMap(e)).toList();
+      return raw.map((e) => GrotixThreshold.fromMap(e)).toList();
     }
     return [];
   }
@@ -36,5 +36,17 @@ class TelemetryDatasource {
       return jsonDecode(res.body);
     }
     return null;
+  }
+
+  Future<bool> updateThresholds(int zoneId, List<Map<String, dynamic>> updates) async {
+    final uri = Uri.parse('$_base/api/v1/telemetry/zones/$zoneId/thresholds');
+    final res = await _client.patch(
+        uri,
+        headers: await _headers(),
+        body: jsonEncode(updates)
+    );
+
+    // Retorna true si fue exitoso (200 OK)
+    return res.statusCode >= 200 && res.statusCode < 300;
   }
 }

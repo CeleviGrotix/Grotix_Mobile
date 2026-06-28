@@ -264,7 +264,123 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
 
               const SizedBox(height: 28),
+// ── MY SUBSCRIPTION ───────────────────────────────
+              _SectionHeader(label: l10n.mySubscription),
+              const SizedBox(height: 16),
 
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.darkCardBg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: (profileProvider.contract?.isActive ?? false)
+                        ? AppColors.greenEmerald.withOpacity(0.4)
+                        : Colors.white10,
+                    width: 1.5,
+                  ),
+                ),
+                child: profileProvider.contract == null
+                    ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      l10n.noActiveSubscription,
+                      style: const TextStyle(color: Colors.white54, fontSize: 15),
+                    ),
+                  ),
+                )
+                    : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.planName,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: profileProvider.contract!.isActive
+                                ? AppColors.greenEmerald.withOpacity(0.15)
+                                : Colors.redAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            profileProvider.contract!.isActive
+                                ? l10n.subscriptionActive
+                                : l10n.subscriptionSuspended,
+                            style: TextStyle(
+                              color: profileProvider.contract!.isActive
+                                  ? AppColors.greenEmerald
+                                  : Colors.redAccent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        FaIcon(FontAwesomeIcons.solidCalendarCheck, size: 15, color: AppColors.white.withOpacity(0.4)),
+                        const SizedBox(width: 10),
+                        Text(
+                          l10n.renewalDate,
+                          style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 14),
+                        ),
+                        const Spacer(),
+                        Text(
+                          profileProvider.contract!.endDate.toLocal().toString().split(' ')[0],
+                          style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        FaIcon(FontAwesomeIcons.layerGroup, size: 15, color: AppColors.white.withOpacity(0.4)),
+                        const SizedBox(width: 10),
+                        Text(
+                          l10n.allowedZones,
+                          style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 14),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${profileProvider.contract!.maxZones}',
+                          style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        FaIcon(FontAwesomeIcons.microchip, size: 15, color: AppColors.white.withOpacity(0.4)),
+                        const SizedBox(width: 10),
+                        Text(
+                          l10n.microcontrollers,
+                          style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 14),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${profileProvider.contract!.maxMicrocontrollers}',
+                          style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
               // ── NOTIFICATIONS ─────────────────────────────────
               _SectionHeader(label: l10n.notifications),
               const SizedBox(height: 16),

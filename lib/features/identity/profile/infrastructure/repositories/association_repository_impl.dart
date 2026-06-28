@@ -1,3 +1,4 @@
+import '../../../../supervision/domain/entities/contract.dart';
 import '../../domain/entities/association.dart';
 import '../../domain/repositories/association_repository.dart';
 import '../datasource/association_datasource.dart';
@@ -44,5 +45,9 @@ class AssociationRepositoryImpl implements AssociationRepository {
       name: name,
       email: email,
     );
+  }
+  @override
+  Future<List<Contract>> getContracts() async {
+    return await remoteDataSource.getContracts();
   }
 }
