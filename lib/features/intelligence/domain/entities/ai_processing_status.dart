@@ -12,6 +12,7 @@ class AiZoneStatus {
   final int? healthScore;
   final String? aiObservaciones;
 
+  // Status de IA
   const AiZoneStatus({
     required this.zoneId,
     required this.zoneName,
