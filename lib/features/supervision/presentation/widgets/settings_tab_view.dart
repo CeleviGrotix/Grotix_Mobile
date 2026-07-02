@@ -41,7 +41,7 @@ class _SettingsTabViewState extends State<SettingsTabView> {
   bool _isEditingLevels = false;
   bool _isSavingLevels = false;
 
-  // ── Duración de riego (nuevo: input numérico en vez de dropdown) ─────────
+  // ── Duración de riego ─────────
   final _maxTimeController = TextEditingController();
   final _maxTimeFocusNode = FocusNode();
 
@@ -105,7 +105,6 @@ class _SettingsTabViewState extends State<SettingsTabView> {
   Future<void> _saveLevels() async {
     setState(() => _isSavingLevels = true);
 
-    // TODO: PATCH /crops/{id} cuando el backend lo exponga
     await Future.delayed(const Duration(milliseconds: 500));
 
     setState(() {
