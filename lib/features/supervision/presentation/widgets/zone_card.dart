@@ -6,6 +6,9 @@ import 'package:intl/intl.dart';
 
 import '../../domain/entities/zone.dart';
 
+/// <summary>
+/// Widget reusable para el corto detalle de una zona en individual
+/// </summary>
 class ZoneCard extends StatelessWidget {
   final Zone zone;
   final VoidCallback? onTap;
@@ -113,7 +116,6 @@ class _ZoneInfo extends StatelessWidget {
   }
 }
 
-// TODO: REEMPLAZAR ESTE FAKE DE FASE DE ZONA POR ESTADO DE SENSORES
 class _ZonePhaseBadge extends StatelessWidget {
   final ZonePhase phase;
 
