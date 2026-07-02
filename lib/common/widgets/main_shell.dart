@@ -110,10 +110,46 @@ class _MainShellState extends State<MainShell> {
         toolbarHeight: 70,
         actions: [
           Builder(
-            builder: (context) => IconButton(
-              icon: const FaIcon(AppIcons.notifications, color: AppColors.white, size: 24),
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-            ),
+            builder: (context) {
+              final unread = context.watch<ProfileProvider>().unreadCount;
+
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const FaIcon(
+                      AppIcons.notifications,
+                      color: AppColors.white,
+                      size: 24,
+                    ),
+                    onPressed: () => Scaffold.of(context).openEndDrawer(),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        decoration: const BoxDecoration(
+                          color: AppColors.redCoral,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            unread > 9 ? '9+' : '$unread',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],

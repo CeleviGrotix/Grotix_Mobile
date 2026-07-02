@@ -531,4 +531,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noActiveSubscription => 'No se encontró una suscripción activa.';
+
+  @override
+  String get markAllRead => 'Marcar todo como leído';
 }

@@ -202,5 +202,6 @@
   "renewalDate": "Renovación:",
   "allowedZones": "Zonas Permitidas:",
   "microcontrollers": "Microcontroladores:",
-  "noActiveSubscription": "No se encontró una suscripción activa."
+  "noActiveSubscription": "No se encontró una suscripción activa.",
+  "markAllRead": "Marcar todo como leído"
 }

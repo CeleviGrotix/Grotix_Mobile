@@ -202,5 +202,6 @@
   "renewalDate": "Renewal:",
   "allowedZones": "Allowed Zones:",
   "microcontrollers": "Microcontrollers:",
-  "noActiveSubscription": "No active subscription found."
+  "noActiveSubscription": "No active subscription found.",
+  "markAllRead": "Mark all as read"
 }
