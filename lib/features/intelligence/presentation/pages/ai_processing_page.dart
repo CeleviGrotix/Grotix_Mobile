@@ -220,6 +220,7 @@ class _AiProcessingPageState extends State<AiProcessingPage> {
               const SizedBox(height: 16),
 
               // ── Observaciones ─────────────────────────────────────────
+              // IA devuelve las observaciones en inglés sin opción a cambio
               if (obs.isNotEmpty) ...[
                 Text(
                   l10n.observationsLabel,
