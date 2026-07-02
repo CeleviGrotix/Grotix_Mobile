@@ -1,12 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+/// <summary>
+/// Bottom Navigation Bar modificada para tener el efecto curvo.
+/// </summary>
 class NavCustomPainter extends CustomPainter {
   late double loc;
   late double s;
   Color color;
   TextDirection textDirection;
-  // NUEVO: gradiente opcional
   Gradient? gradient;
 
   NavCustomPainter(
@@ -140,9 +142,7 @@ class CurvedNavigationBar extends StatefulWidget {
   final Duration animationDuration;
   final double height;
   final double? maxWidth;
-  // NUEVO: gradiente opcional para la barra
   final Gradient? gradient;
-  // NUEVO: tamaño del padding del círculo
   final double buttonPadding;
 
   CurvedNavigationBar({
@@ -250,7 +250,6 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
                   alignment: Alignment.bottomCenter,
                   children: <Widget>[
                     Positioned(
-                      // MODIFICADO: subimos el círculo un poco más
                       bottom: -35 - (75.0 - widget.height),
                       left: textDirection == TextDirection.rtl
                           ? null
@@ -269,7 +268,6 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
                             color: widget.buttonBackgroundColor ?? widget.color,
                             type: MaterialType.circle,
                             child: Padding(
-                              // MODIFICADO: padding configurable = tamaño del círculo
                               padding: EdgeInsets.all(widget.buttonPadding),
                               child: _icon,
                             ),
