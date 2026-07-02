@@ -60,7 +60,7 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
     _minLightCtrl = TextEditingController(text: crop != null ? (crop.optimalLight - 10).round().toString() : '');
     _maxLightCtrl = TextEditingController(text: crop != null ? (crop.optimalLight + 10).round().toString() : '');
 
-    _loadThresholds(); // <- Llamamos al backend al abrir la pantalla
+    _loadThresholds(); // Llamada al backend al abrir la pantalla
   }
 
   Future<void> _loadThresholds() async {
@@ -140,7 +140,7 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
         _selectedPhase,
       );
 
-      // 2. Guardar otros campos (Lat, Lng, Image)
+      // 2. Guardar otros campos
       final lat = double.tryParse(_latController.text.trim());
       final lng = double.tryParse(_lngController.text.trim());
       final img = _imageController.text.trim();
@@ -220,7 +220,7 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!; // Obtener l10n
+    final l10n = AppLocalizations.of(context)!;
     final user = context.watch<AuthProvider>().session?.user;
     final canEdit = _canEdit(user?.roleId);
     final zone = widget.zone;
@@ -452,7 +452,6 @@ class _ZoneDetailPageState extends State<ZoneDetailPage> {
 }
 
 // ─── Widgets privados ─────────────────────────────────────────────────────────
-
 class _ZoneHeroImage extends StatelessWidget {
   final String? imageUrl;
   const _ZoneHeroImage({this.imageUrl});
