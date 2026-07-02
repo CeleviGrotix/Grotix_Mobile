@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:grotix/features/supervision/application/services/zone_service.dart';
 import 'package:grotix/features/supervision/presentation/providers/zone_provider.dart';
 import 'package:provider/provider.dart';
-
 import 'common/di/locale_provider.dart';
 import 'common/routes/app_router.dart';
 import 'common/theme/app_theme.dart';
@@ -30,6 +29,7 @@ import 'features/supervision/application/services/irrigation_service.dart';
 import 'features/supervision/infrastructure/datasource/irrigation_datasource.dart';
 import 'features/supervision/infrastructure/repositories/irrigation_repository_impl.dart';
 import 'features/supervision/presentation/providers/irrigation_provider.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -87,6 +87,7 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ],
+      // Se envuelve en el Locale Provider para la traducción
       child: Consumer2<LocaleProvider, AuthProvider>(
         builder: (context, localeProvider, auth, _) {
           return MaterialApp.router(
